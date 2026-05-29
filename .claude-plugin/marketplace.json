@@ -13,7 +13,7 @@
       "name": "wonder-harness",
       "source": "./plugins/wonder-harness",
       "description": "Claude Code 개발 하네스 — 프로젝트 워크플로우 최적화 플러그인",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "Productivity",
       "tags": ["harness", "workflow", "optimization"],
       "author": {
