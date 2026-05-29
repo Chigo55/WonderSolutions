@@ -1,12 +1,12 @@
 {
   "name": "wonder-harness",
   "version": "0.2.0",
-  "description": "Claude Code 개발 하네스 — 프로젝트 워크플로우 최적화 플러그인",
+  "description": "Spring Boot · MyBatis(SP) · Thymeleaf · Kendo 스택 도메인 개발 오케스트레이션 하네스 (planner·templater·developer·ruler 파이프라인)",
   "author": {
     "name": "InHo Jeong",
     "email": "inho.jeong@wonderit.kr"
   },
   "homepage": "https://github.com/Chigo55/wonder-harness",
   "license": "MIT",
-  "keywords": ["claude-code", "plugin", "harness", "workflow", "templater", "developer", "planner", "ruler"]
+  "keywords": ["claude-code", "plugin", "harness", "workflow", "spring-boot", "mybatis", "thymeleaf", "kendo", "templater", "developer", "planner", "ruler"]
 }

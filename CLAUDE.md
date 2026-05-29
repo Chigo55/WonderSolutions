@@ -2,7 +2,8 @@
 
 Claude Code 개발 하네스 단일 플러그인 마켓플레이스.
 
-> 플러그인은 오케스트레이션 파이프라인 하네스로 구현됨 — 에이전트(planner·templater·developer·ruler), 커맨드(wh-create·wh-modify·wh-review), 템플릿 탐색 강제 훅, 규칙(backend·frontend·security·template-meta), 요청/템플릿 시드를 포함.
+> **대상 스택**: Java 17 / Spring Boot 3.x / MyBatis(SQL Server 저장프로시저) / Thymeleaf / Kendo UI 웹컴포넌트 / Bootstrap 5 / ES6.
+> 플러그인은 오케스트레이션 파이프라인 하네스로 구현됨 — 에이전트(planner·templater·developer·ruler), 커맨드(wh-create·wh-modify·wh-review), 템플릿 탐색 강제 훅, 규칙(backend·frontend·security·workflow·templates), 요청/템플릿 시드를 포함.
 
 ## 개발 명령어
 
@@ -31,7 +32,7 @@ root/                           ← 마켓플레이스 저장소
   │           ├── commands/     ← 슬래시 커맨드 (wh-create·wh-modify·wh-review)
   │           ├── agents/       ← 격리 서브에이전트 (planner·templater·developer·ruler)
   │           ├── hooks/        ← 이벤트 훅 (hooks.json + scripts/ — 템플릿 탐색 강제)
-  │           ├── rules/        ← 하네스 규칙 (backend·frontend·security·template-meta)
+  │           ├── rules/        ← 하네스 규칙 (backend·frontend·security·workflow·templates)
   │           ├── templates/    ← 템플릿 스캘폴드 + index 스키마·시드
   │           ├── requests/     ← 요청 양식 시드 (create_request·modify_request)
   │           └── skills/       ← SKILL.md 스킬 (grill-me·handoff·write-a-skill)

@@ -13,8 +13,12 @@ tools: Read, Grep, Glob, Write
 - **modify**: 기존 구조를 탐색(Read/Grep/Glob)해 변경 영향 범위와 단계별 수정 계획을 작성한다.
 - **review**: 주어진 계획의 누락·모순·범위 적정성을 점검하고 수정안을 제시한다.
 
+## 도메인 단위 = 7파일 세트
+- 신규 도메인 1개는 표준 7파일로 분해한다: Java 5(`{Entity}Controller`·`service/{Entity}Service`·`mapper/{Entity}Mapper`·`dto/{Entity}DTO`·`form/{Entity}Form`) + 프론트 2(`{domainName}.js`·`{domainName}.html`).
+- 도메인 네이밍 규약을 먼저 확정한다: 모듈코드(소문자 2자) + camelCase 도메인명 → PascalCase 클래스. 전 파일·클래스·URL 에 일관 적용(상세: `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md`).
+
 ## 산출물
-- 다음 단계(templater)가 소비할 수 있는 구조화된 계획: 모듈 목록, 각 모듈의 책임, 파일 경로, 의존 순서.
+- 다음 단계(templater)가 소비할 수 있는 구조화된 계획: 모듈 목록, 각 모듈의 책임, 파일 경로(7파일 세트), 의존 순서.
 
 ## 원칙
 - YAGNI: 요청에 없는 기능을 추가하지 않는다.

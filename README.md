@@ -1,12 +1,12 @@
 <p align="center">
   <h1 align="center">wonder-harness</h1>
   <p align="center">
-    <strong>Claude Code 개발 하네스 단일 플러그인 마켓플레이스</strong><br>
-    프로젝트 워크플로우 최적화를 위한 Claude Code 플러그인을 배포합니다.
+    <strong>Spring Boot · MyBatis(SP) · Thymeleaf · Kendo 스택 도메인 개발 오케스트레이션 하네스</strong><br>
+    요청 → 계획 → 템플릿 탐색·축적 → 코드 구현 → 규칙 검증의 4단계 파이프라인을 제공하는 Claude Code 플러그인입니다.
   </p>
   <p align="center">
     <img src="https://img.shields.io/badge/Claude_Code-plugin-blue?style=flat-square" alt="Claude Code Plugin">
-    <img src="https://img.shields.io/badge/version-0.1.0-orange?style=flat-square" alt="Version 0.1.0">
+    <img src="https://img.shields.io/badge/version-0.3.0-orange?style=flat-square" alt="Version 0.3.0">
     <img src="https://img.shields.io/badge/Node.js-18+-green?style=flat-square" alt="Node.js 18+">
     <img src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square" alt="MIT License">
   </p>
@@ -14,8 +14,14 @@
 
 ---
 
-> ⚠️ **초기 단계** — 이 마켓플레이스는 단일 플러그인 `wonder-harness`를 위한 빈 쉘 구조로 시작합니다.
-> 플러그인 기능(commands·agents·hooks·skills)은 추후 채워집니다.
+## 개요
+
+`wonder-harness`는 **Java 17 / Spring Boot 3.x / MyBatis(SQL Server 저장프로시저) / Thymeleaf / Kendo UI 웹컴포넌트 / Bootstrap 5 / ES6** 스택의 도메인·화면 개발을 오케스트레이션한다.
+
+- **파이프라인**: planner(분해) → templater(템플릿 탐색·축적) → developer(구현) → ruler(규칙 검증)
+- **정체성**: 재사용 가능한 *메커니즘 + 회사표준 규칙*. 특정 프로젝트의 복제본이 아니다.
+- **규칙 5종**(ruler 소유): `backend` · `frontend` · `security` · `workflow` · `templates`
+- **템플릿 탐색 강제 훅**: 프로젝트 `index.json` 미탐색 상태의 `Write`/`Edit` 를 차단한다.
 
 ---
 
@@ -49,13 +55,16 @@ wonder-harness/  (마켓플레이스 저장소)
   .claude-plugin/
     marketplace.json        ← 마켓플레이스 카탈로그
   plugins/
-    wonder-harness/         ← wonder-harness 플러그인 (v0.1.0)
+    wonder-harness/         ← wonder-harness 플러그인 (v0.3.0)
       .claude-plugin/
         plugin.json         ← 플러그인 매니페스트
-      commands/             ← 슬래시 커맨드 (예정)
-      agents/               ← 격리 서브에이전트 (예정)
-      hooks/                ← 이벤트 훅 핸들러 (예정)
-      skills/               ← SKILL.md 스킬 (예정)
+      commands/             ← 슬래시 커맨드 (wh-create·wh-modify·wh-review)
+      agents/               ← 격리 서브에이전트 (planner·templater·developer·ruler)
+      hooks/                ← 이벤트 훅 (템플릿 탐색 강제)
+      rules/                ← 하네스 규칙 (backend·frontend·security·workflow·templates)
+      templates/            ← index 스키마·시드 + scaffolds
+      requests/             ← 요청 양식 시드 (create_request·modify_request)
+      skills/               ← SKILL.md 스킬 (grill-me·handoff·write-a-skill)
   package.json              ← 모노레포 루트
   CLAUDE.md
 ```

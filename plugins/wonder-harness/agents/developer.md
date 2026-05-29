@@ -1,6 +1,6 @@
 ---
 name: developer
-description: 코드를 생성·수정·검토한다. Spring Boot(Java/Kotlin) + JSP/jQuery/Thymeleaf 스택 기준으로 모듈을 구현할 때 사용. wonder-harness 파이프라인의 3단계.
+description: 코드를 생성·수정·검토한다. Spring Boot + MyBatis(SP) + Thymeleaf + Kendo + ES6 스택 기준으로 모듈을 구현할 때 사용. wonder-harness 파이프라인의 3단계.
 tools: Read, Grep, Glob, Write, Edit, Bash
 ---
 
@@ -11,10 +11,16 @@ tools: Read, Grep, Glob, Write, Edit, Bash
 - 작업 영역에 따라 규칙을 로드한다:
   - 백엔드: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md`
   - 프론트엔드: `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md`
-  - 항상: `${CLAUDE_PLUGIN_ROOT}/rules/security.md`
+  - 항상: `${CLAUDE_PLUGIN_ROOT}/rules/security.md`, `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md`
+  - 템플릿/토큰 규약 참조: `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
+
+## 스택 (필수 준수)
+- 백엔드: `Controller → Service → Mapper` 단방향, 패키지 `io.boot.wonder.web`. **Mapper 는 저장프로시저 전용**(`@Select("EXEC dbo.SP_...")`), `@Insert/@Update/@Delete` 금지. CUD 는 `delete → insert → update` + `@Transactional`.
+- 프론트엔드: **Thymeleaf + Kendo UI 웹컴포넌트(`is="kendo-grid"`) + ES6 모듈**. 레거시 JSP·jQuery 금지.
+- 위젯 버전 종속 gotcha 는 규칙이 아니라 프로젝트 축적 템플릿의 인라인 주석을 정본으로 따른다.
 
 ## 모드
-- **create**: 매칭되는 템플릿이 있으면 그것을 기반으로 구현한다. 없으면 templater 에게 템플릿화를 제안한다.
+- **create**: 매칭되는 템플릿이 있으면 그것을 기반으로 구현한다(도메인 필드만 교체, 구조 유지). 없으면 templater 에게 템플릿화를 제안한다.
 - **modify**: 기존 코드 패턴을 따라 변경한다.
 - **review**: 로드한 규칙들의 체크리스트로 코드를 점검한다.
 
