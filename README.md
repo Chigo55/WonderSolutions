@@ -25,7 +25,7 @@
 
 ```shell
 # 마켓플레이스 등록
-/plugin marketplace add Chigo55/wiki-optimizer
+/plugin marketplace add Chigo55/wonder-harness
 
 # 플러그인 설치
 /plugin install wonder-harness@wonder-harness
@@ -34,8 +34,8 @@
 ### 로컬에서 직접 로드 (개발·테스트용)
 
 ```bash
-git clone https://github.com/Chigo55/wiki-optimizer.git
-claude --plugin-dir ./wiki-optimizer/plugins/wonder-harness
+git clone https://github.com/Chigo55/wonder-harness.git
+claude --plugin-dir ./wonder-harness/plugins/wonder-harness
 ```
 
 ---
