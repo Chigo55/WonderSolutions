@@ -8,6 +8,7 @@
     "description": "Claude Code 개발 하네스 단일 플러그인 마켓플레이스",
     "pluginRoot": "./plugins"
   },
+  "allowCrossMarketplaceDependenciesOn": ["claude-plugins-official"],
   "plugins": [
     {
       "name": "wonder-harness",
