@@ -6,7 +6,7 @@
   </p>
   <p align="center">
     <img src="https://img.shields.io/badge/Claude_Code-plugin-blue?style=flat-square" alt="Claude Code Plugin">
-    <img src="https://img.shields.io/badge/version-0.3.0-orange?style=flat-square" alt="Version 0.3.0">
+    <img src="https://img.shields.io/badge/version-0.5.0-orange?style=flat-square" alt="Version 0.5.0">
     <img src="https://img.shields.io/badge/Node.js-18+-green?style=flat-square" alt="Node.js 18+">
     <img src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square" alt="MIT License">
   </p>
@@ -46,6 +46,25 @@ claude --plugin-dir ./wonder-harness/plugins/wonder-harness
 
 ---
 
+## 의존 플러그인
+
+`wonder-harness`는 아래 플러그인을 의존성으로 선언한다. 설치 시 자동으로 함께 설치되며, 활성화 시 같은 스코프에서 함께 활성화된다. 모두 공식 마켓플레이스 `claude-plugins-official` 에서 제공된다.
+
+| 플러그인 | 역할 |
+|----------|------|
+| `superpowers` | brainstorming · TDD · debugging 등 개발 워크플로우 스킬 |
+| `context7` | 라이브러리/프레임워크 최신 문서 조회 (MCP) |
+| `hookify` | 대화에서 훅 규칙 생성 |
+| `plugin-dev` | 플러그인 · 스킬 · 훅 개발 도구 |
+| `claude-md-management` | CLAUDE.md 감사 · 개선 |
+| `code-simplifier` | 코드 단순화 · 정리 |
+
+> **전제조건**
+> - 소비자 환경에 `claude-plugins-official` 마켓플레이스가 등록돼 있어야 의존성이 해석된다.
+> - 의존성 자동 활성화는 Claude Code **v2.1.143+** 에서 동작한다 (그 이하에서는 설치 후 수동 활성화 필요).
+
+---
+
 ## 저장소 구조
 
 이 저장소는 **단일 플러그인 마켓플레이스**입니다.
@@ -55,7 +74,7 @@ wonder-harness/  (마켓플레이스 저장소)
   .claude-plugin/
     marketplace.json        ← 마켓플레이스 카탈로그
   plugins/
-    wonder-harness/         ← wonder-harness 플러그인 (v0.3.0)
+    wonder-harness/         ← wonder-harness 플러그인 (v0.5.0)
       .claude-plugin/
         plugin.json         ← 플러그인 매니페스트
       commands/             ← 슬래시 커맨드 (wh-create·wh-modify·wh-review)
