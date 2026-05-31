@@ -14,7 +14,7 @@
       "name": "wonder-harness",
       "source": "./plugins/wonder-harness",
       "description": "Spring Boot · MyBatis(SP) · Thymeleaf · Kendo 스택 도메인 개발 오케스트레이션 하네스 (planner·templater·developer·ruler 파이프라인)",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "category": "Productivity",
       "tags": ["harness", "workflow", "spring-boot", "mybatis", "thymeleaf", "kendo"],
       "author": {
