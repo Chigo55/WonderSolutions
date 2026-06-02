@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>wonder-harness 구현 계획</title>
+<style>
+  :root{
+    --bg:#0f1117; --card:#171a23; --card2:#1d212c; --line:#2a2f3a;
+    --txt:#e6e8ee; --mut:#9aa3b2; --accent:#6ea8fe; --green:#4ade80;
+    --red:#f87171; --amber:#fbbf24; --purple:#c084fc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+    line-height:1.7;font-size:15px}
+  .wrap{max-width:960px;margin:0 auto;padding:48px 24px 96px}
+  header{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:28px}
+  h1{font-size:30px;margin:0 0 8px;letter-spacing:-.5px}
+  .sub{color:var(--mut);font-size:15px}
+  .pill{display:inline-block;font-size:12px;background:var(--card2);
+    border:1px solid var(--line);color:var(--mut);border-radius:999px;
+    padding:3px 11px;margin:4px 6px 0 0}
+  h2{font-size:20px;margin:14px 0 6px}
+  h3{font-size:15px;margin:18px 0 8px;color:var(--mut);text-transform:uppercase;
+    letter-spacing:.5px;font-size:12px}
+  p{margin:9px 0}
+  code{background:#000;color:#9ad;padding:2px 6px;border-radius:5px;
+    font-size:12.5px;font-family:"SFMono-Regular",Consolas,monospace}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mut);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
+  tr:last-child td{border-bottom:none}
+  .id{font-family:Consolas,monospace;color:var(--accent);font-weight:700;white-space:nowrap}
+  ul{margin:6px 0;padding-left:20px}li{margin:3px 0}
+
+  /* phase cards */
+  .phase{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    margin:16px 0;overflow:hidden}
+  .phead{display:flex;align-items:center;gap:14px;padding:16px 22px;
+    background:linear-gradient(135deg,#1a2230,#171a23);border-bottom:1px solid var(--line)}
+  .pnum{display:flex;align-items:center;justify-content:center;width:40px;height:40px;
+    background:var(--accent);color:#0b1220;border-radius:10px;font-weight:800;font-size:18px}
+  .ptitle{font-size:17px;font-weight:700}
+  .pdep{font-size:12px;color:var(--mut)}
+  .pbody{padding:6px 22px 18px}
+  .gate{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--green);
+    border-radius:8px;padding:10px 16px;margin-top:12px;font-size:13px}
+  .gate b{color:var(--green)}
+  .gate ul{list-style:none;padding-left:0;margin:6px 0 0}
+  .gate li{padding-left:22px;position:relative}
+  .gate li::before{content:"☐";position:absolute;left:0;color:var(--mut)}
+
+  .flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;margin:14px 0}
+  .flow span{background:var(--card2);border:1px solid var(--line);padding:6px 13px;border-radius:8px}
+  .flow .arr{color:var(--accent);font-weight:700;background:none;border:none;padding:0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin:14px 0}
+  .dont li::before{content:"✕";color:var(--red);font-weight:700;position:absolute;left:0}
+  .dont li{list-style:none;position:relative;padding-left:22px}
+  .legend{font-size:12px;color:var(--mut)}
+  .commit{font-family:Consolas,monospace;font-size:13px}
+  footer{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);
+    color:var(--mut);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>wonder-harness 구현 계획</h1>
+  <div class="sub">사양서 v0.3.0 기반 단계별 실행 절차 — 어떻게 만드는가</div>
+  <div style="margin-top:14px">
+    <span class="pill">5 Phase</span>
+    <span class="pill">규칙 → 에이전트 → 메타 → 검증 → 커밋</span>
+    <span class="pill">근거: wonder-harness-spec.md</span>
+  </div>
+</header>
+
+<div class="card">
+  <h3 style="margin-top:0">실행 원칙</h3>
+  <ul>
+    <li><b>순서 고정</b>: 규칙이 ruler 정본이므로 가장 먼저</li>
+    <li><b>포팅 깊이</b>: 원칙·불변·토큰규약만 — 위젯 gotcha 박제 금지</li>
+    <li><b>상호참조</b>: 규칙↔규칙 <code>${CLAUDE_PLUGIN_ROOT}/rules/…</code> / 규칙→템플릿 <code>.claude/…</code></li>
+    <li><b>게이트</b>: 각 Phase 끝 통과 후 다음 단계</li>
+    <li><b>커밋 분리</b>: 기능 커밋 → 마지막 버전 범프 커밋</li>
+  </ul>
+</div>
+
+<div class="flow">
+  <span>Phase 1 규칙</span><span class="arr">→</span>
+  <span>Phase 2 에이전트</span><span class="arr">→</span>
+  <span>Phase 3 메타</span><span class="arr">→</span>
+  <span>Phase 4 검증</span><span class="arr">→</span>
+  <span>Phase 5 커밋</span>
+</div>
+
+<!-- PHASE 1 -->
+<div class="phase">
+  <div class="phead"><div class="pnum">1</div>
+    <div><div class="ptitle">규칙 5종 <code>rules/</code></div>
+    <div class="pdep">입력: raw/.claude/rules · 소유: ruler · 후속 전제</div></div></div>
+  <div class="pbody">
+    <table>
+      <tr><th>ID</th><th>작업</th><th>완료 기준</th></tr>
+      <tr><td class="id">R1</td><td>backend 교정</td><td>Repository 흔적 0, Mapper/SP-only/DTO/Form/tx순서/errorCode/패키지</td></tr>
+      <tr><td class="id">R2</td><td>frontend 교정</td><td>jQuery 흔적 0, Kendo/ES6/그리드ID/4-hidden/changesData, 위젯 gotcha 제외</td></tr>
+      <tr><td class="id">R3</td><td>security 교정</td><td>재고 무결성·권한 매핑표·고정 유틸·파일 검증</td></tr>
+      <tr><td class="id">R4</td><td>workflow 신설</td><td>도메인 네이밍·탐색 필수·DB 레이블</td></tr>
+      <tr><td class="id">R5</td><td>template-meta→templates 교체</td><td>토큰 규약·치환표·INDEX 포맷·단일 index.json 정본</td></tr>
+      <tr><td class="id">R6</td><td>상호참조 정리</td><td>규칙↔규칙 플러그인루트, 규칙→템플릿 프로젝트로컬</td></tr>
+    </table>
+    <div class="gate"><b>게이트</b>
+      <ul>
+        <li><code>grep -ri "repository|jpa|jquery|com.wonderit"</code> → 의도 외 0건</li>
+        <li>5종 존재, <code>template-meta.md</code> 제거</li>
+        <li>owner(ruler)·applies-to 메타 유지 + 상호참조 경로 형태 확인</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 2 -->
+<div class="phase">
+  <div class="phead"><div class="pnum">2</div>
+    <div><div class="ptitle">에이전트 4종 <code>agents/</code></div>
+    <div class="pdep">의존: Phase 1 (규칙 파일명·내용 확정 후)</div></div></div>
+  <div class="pbody">
+    <table>
+      <tr><th>ID</th><th>작업</th><th>완료 기준</th></tr>
+      <tr><td class="id">A1</td><td>developer 스택 교정</td><td>JSP/jQuery 제거, SP-only·Kendo·ES6, 규칙 5종 로드, 프로젝트 index.json 탐색</td></tr>
+      <tr><td class="id">A2</td><td>templater 카탈로그</td><td>단일 index.json, raw 토큰 규약, 빈 시드 부트스트랩, 실코드 축적</td></tr>
+      <tr><td class="id">A3</td><td>ruler 규칙 5종</td><td>소유 4→5(workflow 추가), 검증 체크리스트 교정</td></tr>
+      <tr><td class="id">A4</td><td>planner 경미 조정</td><td>도메인 단위=7파일 세트, 네이밍 인지</td></tr>
+    </table>
+    <div class="gate"><b>게이트</b>
+      <ul>
+        <li>developer 참조 규칙 = 5종, ruler 소유 = 5종</li>
+        <li>templater 토큰 규약이 templates.md와 일치</li>
+        <li>에이전트→규칙 참조 경로 유효</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 3 -->
+<div class="phase">
+  <div class="phead"><div class="pnum">3</div>
+    <div><div class="ptitle">메커니즘 · 메타데이터</div>
+    <div class="pdep">의존: Phase 1–2</div></div></div>
+  <div class="pbody">
+    <table>
+      <tr><th>ID</th><th>작업</th><th>완료 기준</th></tr>
+      <tr><td class="id">M1</td><td>훅 회귀 확인</td><td>로직 변경 없음, 기존 테스트 통과</td></tr>
+      <tr><td class="id">M2</td><td>빈 시드 유지</td><td><code>{version:1, templates:[]}</code></td></tr>
+      <tr><td class="id">M3</td><td>스캐폴드 비움</td><td>템플릿 굽지 않음, .gitkeep 유지</td></tr>
+      <tr><td class="id">M4</td><td>매니페스트</td><td>description/keywords 교정, version 0.2.0→0.3.0</td></tr>
+      <tr><td class="id">M5</td><td>카탈로그 동기화</td><td>marketplace.json version 0.3.0</td></tr>
+      <tr><td class="id">M6</td><td>문서 갱신</td><td>CLAUDE.md·README.md 스택·구조 교정</td></tr>
+    </table>
+    <div class="gate"><b>게이트</b>
+      <ul>
+        <li>plugin.json ↔ marketplace.json version 일치(0.3.0)</li>
+        <li>시드·스키마 JSON 유효 + CLAUDE.md 스택 서술 사양 일치</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 4 -->
+<div class="phase">
+  <div class="phead"><div class="pnum">4</div>
+    <div><div class="ptitle">검증</div>
+    <div class="pdep">사양 §6 · 실사용 통합</div></div></div>
+  <div class="pbody">
+    <table>
+      <tr><th>ID</th><th>작업</th><th>완료 기준</th></tr>
+      <tr><td class="id">V1</td><td>구조 검증</td><td><code>npm run validate</code> 통과</td></tr>
+      <tr><td class="id">V2</td><td>훅 회귀</td><td>기존 훅 테스트 통과</td></tr>
+      <tr><td class="id">V3</td><td>실사용 통합</td><td>WONDER 사본에 플러그인 로드 후 <code>/wh-create</code></td></tr>
+      <tr><td class="id">V3a</td><td>— templater</td><td>index.json 템플릿 축적 확인</td></tr>
+      <tr><td class="id">V3b</td><td>— ruler</td><td>5종 규칙 검증 보고 확인</td></tr>
+      <tr><td class="id">V3c</td><td>— developer</td><td>SP-only·Kendo·io.boot.wonder 생성 확인</td></tr>
+      <tr><td class="id">V4</td><td>상호참조 수동</td><td><code>${CLAUDE_PLUGIN_ROOT}/rules/…</code> 링크 해소</td></tr>
+    </table>
+    <div class="gate"><b>게이트</b>
+      <ul>
+        <li>V1·V2 자동 검증 green</li>
+        <li>V3 워크플로우 의도대로 동작(3 하위) · 회귀 없음</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PHASE 5 -->
+<div class="phase">
+  <div class="phead"><div class="pnum">5</div>
+    <div><div class="ptitle">커밋</div>
+    <div class="pdep">CLAUDE.md 규칙 · conventional commits</div></div></div>
+  <div class="pbody">
+    <ol class="commit">
+      <li>feat: align rules to MyBatis-SP/Kendo stack <span class="legend">(Phase 1)</span></li>
+      <li>feat: update agents for corrected stack <span class="legend">(Phase 2)</span></li>
+      <li>docs: refresh CLAUDE.md/README for v0.3.0 <span class="legend">(Phase 3 M6)</span></li>
+      <li>chore: bump version to 0.3.0 <span class="legend">(별도 커밋)</span></li>
+    </ol>
+  </div>
+</div>
+
+<h2 style="margin-top:32px">리스크 & 대응</h2>
+<div class="card">
+<table>
+  <tr><th>리스크</th><th>영향</th><th>대응</th></tr>
+  <tr><td>규칙에 위젯 gotcha 혼입</td><td>Kendo 버전 종속(과적합)</td><td>게이트 키워드 검사, 템플릿 주석 이관</td></tr>
+  <tr><td>상호참조 경로 혼동</td><td>런타임 링크 깨짐</td><td>R6 전용 작업 + V4 수동 확인</td></tr>
+  <tr><td>빈 카탈로그로 훅 미발효</td><td>첫날 탐색강제 없음</td><td>의도된 동작 — 테스트하며 축적</td></tr>
+  <tr><td>version 비동기화</td><td>마켓플레이스 불일치</td><td>M4·M5 동시 수정 + 게이트</td></tr>
+</table>
+</div>
+
+<h2>비범위 재확인</h2>
+<div class="card dont">
+  <ul>
+    <li>플러그인에 템플릿 파일 굽기</li>
+    <li>프로젝트 전량 시딩 / <code>wh-init</code></li>
+    <li>위젯 gotcha 규칙 박제</li>
+    <li><code>raw/.claude/</code> 수정 · 훅 JS 대규모 개조</li>
+  </ul>
+</div>
+
+<footer>
+  wonder-harness 구현 계획 · 근거 사양: <code>docs/wonder-harness-spec.md</code><br>
+  실행 명세 상세: <code>docs/wonder-harness-implementation-plan.md</code>
+</footer>
+
+</div>
+</body>
+</html>
