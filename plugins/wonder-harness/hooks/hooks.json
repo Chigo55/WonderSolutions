@@ -1,6 +1,11 @@
 {
   "description": "wonder-harness template enforcement hooks",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [{ "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/init-requests.js", "timeout": 5 }]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Read",
@@ -10,7 +15,10 @@
     "PreToolUse": [
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/enforce-template.js", "timeout": 10 }]
+        "hooks": [
+          { "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/enforce-template.js", "timeout": 10 },
+          { "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/enforce-init.js", "timeout": 10 }
+        ]
       }
     ]
   }
