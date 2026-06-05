@@ -1,3 +1,4 @@
+// plugins/wonder-harness/hooks/scripts/lib/state.js
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
@@ -21,8 +22,9 @@ function emptyState() {
 function readState(cwd) {
   try {
     return JSON.parse(fs.readFileSync(statePath(cwd), 'utf8'));
-  } catch (_) {
-    return null;
+  } catch (err) {
+    if (err.code === 'ENOENT') return null;
+    throw err;
   }
 }
 
@@ -30,7 +32,9 @@ function writeState(cwd, updater) {
   const p = statePath(cwd);
   fs.mkdirSync(path.dirname(p), { recursive: true });
   const next = updater(readState(cwd) || emptyState());
-  fs.writeFileSync(p, JSON.stringify(next, null, 2), 'utf8');
+  const tmp = p + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(next, null, 2), 'utf8');
+  fs.renameSync(tmp, p);
   return next;
 }
 

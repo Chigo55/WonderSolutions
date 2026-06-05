@@ -5,15 +5,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 
-// Loaded after file exists in Step 3
-let readState, writeState, emptyState;
+const { readState, writeState, emptyState } = require('../state.js');
 
 describe('state.js', () => {
   let tmpDir;
 
   before(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wh-state-test-'));
-    ({ readState, writeState, emptyState } = require('../state.js'));
   });
 
   after(() => {
@@ -54,5 +52,22 @@ describe('state.js', () => {
     const dir = fs.mkdtempSync(path.join(tmpDir, 'sub-'));
     writeState(dir, s => s);
     assert.ok(fs.existsSync(path.join(dir, '.claude', '.wh-state.json')));
+  });
+
+  it('readState throws on corrupt JSON', () => {
+    const dir = fs.mkdtempSync(path.join(tmpDir, 'corrupt-'));
+    fs.mkdirSync(path.join(dir, '.claude'), { recursive: true });
+    fs.writeFileSync(path.join(dir, '.claude', '.wh-state.json'), '{broken', 'utf8');
+    assert.throws(() => readState(dir));
+  });
+
+  it('emptyState keys align with LAYERS', () => {
+    const { LAYERS } = require('../state.js');
+    const s = emptyState();
+    for (const l of LAYERS) {
+      assert.ok(l in s.adr, `adr missing layer ${l}`);
+      assert.ok(l in s.rules, `rules missing layer ${l}`);
+      assert.ok(l in s.reports, `reports missing layer ${l}`);
+    }
   });
 });
