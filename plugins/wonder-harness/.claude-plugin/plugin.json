@@ -1,6 +1,6 @@
 {
   "name": "wonder-harness",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Domain development orchestration harness for Spring Boot · MyBatis(SP) · Thymeleaf · Kendo stack (planner·templater·developer·ruler pipeline)",
   "author": {
     "name": "InHo Jeong",

@@ -14,7 +14,7 @@
       "name": "wonder-harness",
       "source": "./plugins/wonder-harness",
       "description": "Domain development orchestration harness for Spring Boot · MyBatis(SP) · Thymeleaf · Kendo stack (planner·templater·developer·ruler pipeline)",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "category": "Productivity",
       "tags": ["harness", "workflow", "spring-boot", "mybatis", "thymeleaf", "kendo"],
       "author": {
