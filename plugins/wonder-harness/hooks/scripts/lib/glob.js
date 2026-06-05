@@ -1,7 +1,7 @@
 // plugins/wonder-harness/hooks/scripts/lib/glob.js
 'use strict';
 
-// 최소 글롭→정규식. 지원: **/ , ** , * (슬래시 미포함). 외부 의존성 없음.
+// Minimal glob → RegExp. Supports: **/ , ** , * (no slash). No external dependencies.
 function globToRegExp(pattern) {
   const PLACEHOLDER_GLOBSTAR_SLASH = '\x01';
   const PLACEHOLDER_GLOBSTAR = '\x02';
@@ -12,7 +12,7 @@ function globToRegExp(pattern) {
     .replace(/\*\*/g, PLACEHOLDER_GLOBSTAR)
     .replace(/\*/g, PLACEHOLDER_STAR);
 
-  // 정규식 특수문자 이스케이프 (플레이스홀더 제외)
+  // Escape regex special characters (excluding placeholders)
   p = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   p = p

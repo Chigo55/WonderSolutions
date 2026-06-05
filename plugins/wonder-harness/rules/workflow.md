@@ -1,45 +1,54 @@
 ---
-title: 개발 워크플로우 규칙
+title: Development Workflow Rules
 owner: ruler
 applies-to: developer
 stack: Spring Boot + MyBatis(SP) + Thymeleaf + Kendo
 ---
 
-# 개발 워크플로우 규칙
+# Development Workflow Rules
 
-> 관련 규칙: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/security.md` · `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
+> Related rules: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/security.md` · `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
 
-신규 도메인/화면 개발 시 아래 순서를 따른다: 도메인 네이밍 확정 → 템플릿 탐색 → 구현.
+When developing a new domain/screen, follow this order: finalize domain naming → check rule availability → explore templates → implement.
 
-## 도메인 네이밍 (전 파일 · URL 일관)
+## Rule Application Priority
 
-신규 도메인 개발 전 이름을 먼저 확정하고, 모든 파일·클래스·URL 에 일관 적용한다.
+Before starting implementation, check which project-specific rules are available:
 
-| 항목 | 규칙 | 예시 |
-|------|------|------|
-| 모듈 코드 | 도메인 약어 소문자 2자 | `wo` |
-| 도메인명 | 모듈코드 + 기능명 (camelCase) | `woWorkShift` |
-| 클래스명 | 도메인명 PascalCase | `WoWorkShift` |
+1. **`.claude/rules/{layer}.md` exists** → follow that rule for the layer (backend / frontend / security / templates).
+2. **`.claude/rules/{layer}.md` absent** → before template exploration, templater explores the project's existing code to extract layer-specific conventions and passes them to developer as an inline context block (per-session fallback, does not persist). Run `/wh-init --{layer}` at any time to generate a persistent project rule.
 
-- Java 파일·변수 상세: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md`
-- JS/HTML 파일·변수 상세: `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md`
+The plugin's `${CLAUDE_PLUGIN_ROOT}/rules/{layer}.md` files are meta-rules (ruler-authored rule structure guides), not project conventions — do not use them as coding rules for the developer.
 
-## 구현 전 템플릿 탐색 (필수)
+## Domain Naming (consistent across all files and URLs)
 
-도메인명 확정 후, 코드 구현 전에 반드시 프로젝트 템플릿 카탈로그(`.claude/templates/index.json`)를 탐색한다. 이는 enforce-template 훅의 규범 근거다 — 미탐색 상태의 `Write`/`Edit` 는 차단된다.
+Before developing a new domain, finalize its name first, then apply it consistently across all files, classes, and URLs.
 
-- 화면 유형과 가장 유사한 템플릿을 시작점으로 삼아 도메인 필드만 교체하고 구조는 유지한다.
-- 토큰 규약·치환 규칙: `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
-- 레이어별 탐색 상세: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md`(Java), `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md`(HTML/JS)
+| Item | Rule | Example |
+|------|------|---------|
+| Module code | 2-character lowercase domain abbreviation | `wo` |
+| Domain name | Module code + feature name (camelCase) | `woWorkShift` |
+| Class name | Domain name in PascalCase | `WoWorkShift` |
 
-## DB 레이블 등록 (사용자 영역)
+- Java file and variable details: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md`
+- JS/HTML file and variable details: `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md`
 
-Thymeleaf 에서 사용하는 `${@messageUtils.getMessage('key')}` 레이블은 **DB 에 저장**된다(properties 파일 아님). 화면에 필요한 필드명·버튼명 키를 DB 에 등록 후 사용한다. DB 데이터 등록은 AI 작업 범위 밖이며 사용자가 수행한다.
+## Template Exploration Before Implementation (required)
 
-공통 키(이미 등록됨 예): `button.add_row`, `button.delete_row`, `button.search`, `button.select`.
+After finalizing the domain name, you must explore the project template catalog (`.claude/templates/index.json`) before writing any code. This is the normative basis for the enforce-template hook — `Write`/`Edit` operations without prior exploration are blocked.
 
-## 검토 체크리스트 (review 모드)
+- Use the template most similar to the screen type as a starting point; replace domain fields only and preserve the structure.
+- Token conventions and substitution rules: `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
+- Layer-specific exploration details: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md` (Java), `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md` (HTML/JS)
 
-- [ ] 도메인명이 전 파일·클래스·URL 에 일관 적용됨
-- [ ] 구현 전 템플릿 탐색(`.claude/templates/index.json`) 수행
-- [ ] 화면에 필요한 DB 레이블 키 등록 여부 확인(사용자 영역)
+## DB Label Registration (user scope)
+
+Labels used in Thymeleaf as `${@messageUtils.getMessage('key')}` are **stored in the DB** (not in properties files). Register the required field-name and button-name keys in the DB before use. DB data registration is out of scope for the AI and is performed by the user.
+
+Common keys (already registered, examples): `button.add_row`, `button.delete_row`, `button.search`, `button.select`.
+
+## Review Checklist (review mode)
+
+- [ ] Domain name applied consistently across all files, classes, and URLs
+- [ ] Template exploration (`.claude/templates/index.json`) performed before implementation
+- [ ] Confirm whether DB label keys required by the screen have been registered (user scope)

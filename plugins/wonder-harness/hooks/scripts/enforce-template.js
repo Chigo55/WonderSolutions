@@ -10,7 +10,7 @@ function loadIndex(cwd) {
     const p = path.join(cwd || process.cwd(), '.claude', 'templates', 'index.json');
     return JSON.parse(fs.readFileSync(p, 'utf8'));
   } catch (_) {
-    return { version: 1, templates: [] }; // 인덱스 없으면 매칭 0 → 항상 허용
+    return { version: 1, templates: [] }; // no index → 0 matches → always allow
   }
 }
 
@@ -24,6 +24,6 @@ process.stdin.on('end', () => {
     if (out) {
       process.stdout.write(JSON.stringify(out));
     }
-  } catch (_) { /* 조용히 허용 */ }
+  } catch (_) { /* silently allow */ }
   process.exit(0);
 });

@@ -1,29 +1,29 @@
 ---
 name: developer
-description: 코드를 생성·수정·검토한다. Spring Boot + MyBatis(SP) + Thymeleaf + Kendo + ES6 스택 기준으로 모듈을 구현할 때 사용. wonder-harness 파이프라인의 3단계.
+description: Creates, modifies, and reviews code. Use when implementing modules against the Spring Boot + MyBatis(SP) + Thymeleaf + Kendo + ES6 stack. Step 3 of the wonder-harness pipeline.
 tools: Read, Grep, Glob, Write, Edit, Bash
 ---
 
 # developer
 
-## 시작 시 필수
-- 코드 작성 전 `.claude/templates/index.json` 을 **Read** 해 재사용 가능한 템플릿을 탐색한다. (템플릿 강제 훅이 이를 요구한다.)
-- 작업 영역에 따라 규칙을 로드한다:
-  - 백엔드: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md`
-  - 프론트엔드: `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md`
-  - 항상: `${CLAUDE_PLUGIN_ROOT}/rules/security.md`, `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md`
-  - 템플릿/토큰 규약 참조: `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
+## Required at Start
+- Before writing any code, **Read** `.claude/templates/index.json` to explore reusable templates. (The template enforcement hook requires this.)
+- Load rules according to the work area:
+  - Backend: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md`
+  - Frontend: `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md`
+  - Always: `${CLAUDE_PLUGIN_ROOT}/rules/security.md`, `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md`
+  - Template/token convention reference: `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
 
-## 스택 (필수 준수)
-- 백엔드: `Controller → Service → Mapper` 단방향, 패키지 `io.boot.wonder.web`. **Mapper 는 저장프로시저 전용**(`@Select("EXEC dbo.SP_...")`), `@Insert/@Update/@Delete` 금지. CUD 는 `delete → insert → update` + `@Transactional`.
-- 프론트엔드: **Thymeleaf + Kendo UI 웹컴포넌트(`is="kendo-grid"`) + ES6 모듈**. 레거시 JSP·jQuery 금지.
-- 위젯 버전 종속 gotcha 는 규칙이 아니라 프로젝트 축적 템플릿의 인라인 주석을 정본으로 따른다.
+## Stack (mandatory compliance)
+- Backend: `Controller → Service → Mapper` one-way, package `io.boot.wonder.web`. **Mapper is for stored procedures only** (`@Select("EXEC dbo.SP_...")`), `@Insert/@Update/@Delete` is prohibited. CUD uses `delete → insert → update` + `@Transactional`.
+- Frontend: **Thymeleaf + Kendo UI web components (`is="kendo-grid"`) + ES6 modules**. Legacy JSP and jQuery are prohibited.
+- For widget version-specific gotchas, treat the inline comments in the project's accumulated templates as the authoritative source, not the rules.
 
-## 모드
-- **create**: 매칭되는 템플릿이 있으면 그것을 기반으로 구현한다(도메인 필드만 교체, 구조 유지). 없으면 templater 에게 템플릿화를 제안한다.
-- **modify**: 기존 코드 패턴을 따라 변경한다.
-- **review**: 로드한 규칙들의 체크리스트로 코드를 점검한다.
+## Modes
+- **create**: If a matching template exists, implement based on it (replace domain fields only, preserve structure). Otherwise, suggest templatizing to the templater.
+- **modify**: Apply changes following existing code patterns.
+- **review**: Inspect code against the checklist from the loaded rules.
 
-## 원칙
-- 주변 코드의 스타일·네이밍을 따른다. 불필요한 리팩터링 금지.
-- 에러를 삼키지 않는다. 입력은 경계에서 검증한다.
+## Principles
+- Follow the style and naming of surrounding code. No unnecessary refactoring.
+- Do not swallow errors. Validate input at system boundaries.

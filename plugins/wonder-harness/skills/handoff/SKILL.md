@@ -6,9 +6,9 @@ argument-hint: "What will the next session be used for?"
 
 Write a handoff document summarising the current conversation so a fresh agent can continue the work.
 
-**저장 경로 결정 순서:**
-1. `CLAUDE.md` 에 handoff 저장 경로가 명시된 경우 → 해당 경로 사용
-2. 경로 없음 → OS 임시 디렉터리에 `wh-handoff-{timestamp}.md` 로 저장
+**Save path resolution order:**
+1. If a handoff save path is specified in `CLAUDE.md` → use that path
+2. No path found → save as `wh-handoff-{timestamp}.md` in the OS temp directory
 
 Include a "suggested skills" section in the document, which suggests skills that the agent should invoke.
 

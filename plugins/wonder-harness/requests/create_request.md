@@ -1,17 +1,17 @@
-<!-- wonder-harness 제작 요청 양식. /wh-create 가 아래 필수 섹션 충족 여부를 검증합니다.
-     필수 섹션: ## 목표, ## 범위, ## 제약, ## 수용 기준 -->
+<!-- wonder-harness create request form. /wh-create validates that the required sections below are present.
+     Required sections: ## Goal, ## Scope, ## Constraints, ## Acceptance Criteria -->
 
-# 제작 요청 (Create Request)
+# Create Request
 
-## 목표
-<!-- 무엇을 만드는가? 한두 문장. (필수) -->
+## Goal
+<!-- What are we building? One or two sentences. (required) -->
 
-## 범위
-<!-- 포함/제외 항목. 대상 도메인·모듈. (필수) -->
+## Scope
+<!-- Items included / excluded. Target domain and modules. (required) -->
 
-## 제약
-<!-- 스택·성능·호환성·기한 등 제약. (필수) -->
+## Constraints
+<!-- Stack, performance, compatibility, deadline, and other constraints. (required) -->
 
-## 수용 기준
-<!-- 완료를 판단하는 체크 가능한 기준 목록. (필수) -->
+## Acceptance Criteria
+<!-- Checkable list of criteria that define completion. (required) -->
 - [ ]

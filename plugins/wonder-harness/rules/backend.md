@@ -1,80 +1,155 @@
 ---
-title: 백엔드 규칙 (Spring Boot + MyBatis SP)
+title: Backend Authoring Meta-Rules
 owner: ruler
-applies-to: developer
-stack: Java 17 / Spring Boot 3.x / MyBatis (SQL Server 저장프로시저)
+applies-to: ruler
+stack: stack-agnostic
 ---
 
-# 백엔드 규칙 — Spring Boot + MyBatis(SP)
+# Backend Authoring Meta-Rules
 
-> 관련 규칙: `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md` · `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/security.md` · `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
+> Related meta-rules: `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/security.md` · `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
+> Generated output location: `.claude/rules/backend.md`
 
-## 계층 구조 (필수)
+This document is the **meta-rules for rule authors (ruler)**. It defines what a complete project-specific backend rule must contain, how to discover each section from the project's existing code, and how to validate completeness.
 
-- `Controller → Service → Mapper` 단방향 의존. 역방향·계층 건너뛰기 금지.
-- Controller 는 HTTP 관심사만, 비즈니스 로직은 Service 에만 둔다.
-- 엔티티/내부 객체를 Controller 응답으로 직접 노출하지 않는다 — DTO 로 변환한다.
-- 패키지 루트: `io.boot.wonder.web...` (도메인/기능별로 묶는다).
-- 도메인 1개 = Java 5파일: `{Entity}Controller.java`, `service/{Entity}Service.java`, `mapper/{Entity}Mapper.java`, `dto/{Entity}DTO.java`, `form/{Entity}Form.java`.
+## Core Principle
 
-## 네이밍
+**A generated backend rule must be self-sufficient: a developer reading it alone must be able to implement any new domain without referencing external sources.**
 
-- 클래스명 PascalCase(`WoWorkShift`), 변수·메서드 camelCase(`woWorkShift`, `selectWoWorkShift`).
-- Mapper 메서드 접두사: `select` / `selectCount` / `insert` / `update` / `delete`.
-- 도메인 네이밍 규약은 `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md` 참조.
+- Every decision that varies between projects must be explicitly stated.
+- Discovery over assumption: extract conventions from the project's existing code, not from general knowledge.
+- Confirm extracted conventions with the user before finalizing.
 
-## Mapper — 저장프로시저 전용 (필수)
+---
 
-- 모든 쿼리는 `@Select("EXEC dbo.SP_{MODULE}_{DOMAIN}_{ACTION} ...")` 형태로 SP 를 호출한다.
-- `@Insert` / `@Update` / `@Delete` 사용 금지.
-- CUD 메서드에만 `@Options(statementType = StatementType.CALLABLE)` — SELECT 에는 선언 금지.
-- SELECT/COUNT 메서드는 `@Param("xxxForm")`, `@Param("pageable")` 명시(미선언 시 `#{field}` 접근 불가). CUD 는 DTO 단일 파라미터 → `@Param` 불필요.
-- SP 명명 형식(EXEC 문 추론 참고): `SP_{MODULE}_{DOMAIN}_{ACTION}`. 변형 `_SELECT_TC`(count)·`_PRINT_LIST_SELECT`(인쇄)·`_REQUEST_SEQ_SELECT`(채번). SP 자체의 작성·관리는 작업 범위 밖(사용자 소유).
+## Required Sections
 
-## DTO
+A complete `.claude/rules/backend.md` must contain all of the following sections:
 
-- `BaseDTO` 상속(필수) — 공통 7필드(`rowNo`, `createdBy`, `creationDate`, `lastUpdatedBy`, `lastUpdateDate`, `errorCode`, `errorMsg`) 자동 포함, 자식 DTO 재선언 금지.
-- `rowNo` 는 그리드 표시용 1-base 행 번호로 SP 가 반환(클라이언트가 부여하지 않음).
-- `@GridSetup(gridName)` 필수 — gridName 은 HTML `is="kendo-grid"` id 와 정확히 일치(`${CLAUDE_PLUGIN_ROOT}/rules/frontend.md` 그리드 ID 절).
-- `loginUserSeq` 필드는 `@JsonIgnore`(응답 노출 금지). 처리 정본은 Service-CUD 절.
-- JOIN 으로 가져오는 컬럼은 출처 테이블을 주석 명시.
+| Section | Content |
+|---------|---------|
+| Layer Structure | Package root, one-way dependency direction, file count per domain |
+| Naming | Class/variable/method naming rules, domain naming formula |
+| Data Access Layer | Query technology (ORM / raw SQL / SP), method prefix conventions, parameter rules |
+| DTO/Form | Base class requirements, field conventions, serialization rules |
+| Service — Query | Return type, transaction rules |
+| Service — CUD | Transaction requirements, processing order, error handling |
+| Controller | Return types per endpoint type, annotation rules |
+| Template Exploration | Reference to template catalog before implementation |
+| Review Checklist | Actionable binary checklist for rule compliance |
 
-## Form
+---
 
-- 필드 선언 순서: `createdRows` → `updatedRows` → `deletedRows` → 검색 조건.
-- 같은 Form 에 Detail rows 포함 시 `detailCreatedRows` 등 `detail*` 접두사로 구분.
+## Exploration Guide
 
-## Service — 조회
+For each required section, use the following approach to discover the project's conventions from existing code:
 
-- 반환: `new PageImpl<>(list, pageable, mapper.selectCount(form))`(인쇄 전체 반환은 `new PageImpl<>(list)`).
-- `@Transactional` 선언 금지(조회 전용).
+### Layer Structure
+- Glob `**/*Controller.java` → extract common package prefix
+- Count files per domain → determine expected file-per-domain count
+- Check import statements for cross-layer dependencies
 
-## Service — CUD
+### Naming
+- Sample 3–5 existing class names → extract casing pattern
+- Sample data access layer method names → extract prefix convention
+- Read `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md` → domain naming formula
 
-- `@Transactional` 필수 — public CUD 메서드에만(private 헬퍼 중복 선언 금지).
-- 처리 순서: **delete → insert → update** (순서 변경 금지).
-- 각 처리 블록 진입 전 rows null/empty 체크.
-- SP 호출 후 `"E".equals(dto.getErrorCode())` → `ApplicationException` throw(트랜잭션 자동 롤백).
-- `loginUserSeq` [정본] — public 메서드에서 `SecurityUtils.getPrincipal().getUserSeq()` 로 1회 획득해 private 헬퍼·DTO 에 전달(`${CLAUDE_PLUGIN_ROOT}/rules/security.md` 참조).
+### Data Access Layer
+- Open 2–3 data access files → identify query technology (MyBatis @Select / JPA / QueryDSL / JDBC)
+- Check for stored procedure calls (EXEC / CALL) vs. inline SQL vs. JPQL
+- Identify method-level annotations and parameter binding style
 
-## Controller
+### DTO/Form
+- Open 1–2 DTO files → check for base class and field ordering conventions
+- Check for grid-binding annotations
+- Identify `@JsonIgnore` targets (sensitive fields such as user credentials)
 
-- 페이지 렌더링: `String` 반환(뷰 경로), `@ResponseBody` 없음.
-- 목록 조회: `Page<DTO>` 반환, `@GetMapping("/list")`.
-- CUD: `new SuccessVO(MessageUtils.getUpdateMessage(true))` 반환.
-- 파일 포함 저장: `@PostMapping`(multipart, `files[i]` ↔ `createdRows[i]` 인덱스 순서 보장) / 파일 없는 저장: `@PutMapping`.
-- 클래스 어노테이션: 순수 API(목록·CUD 전용)=`@RestController`, 페이지 전용=`@Controller`, 혼합=`@Controller` + 목록·CUD 메서드에 `@ResponseBody`.
+### Service — Query / CUD
+- Check `@Transactional` placement (class-level / method-level / absent)
+- Identify CUD processing order from existing service methods (delete/insert/update sequence)
+- Identify error handling pattern (errorCode field / exception class / HTTP status)
 
-## 구현 전 템플릿 탐색 (필수)
+### Controller
+- Sample 2–3 Controllers → identify return types per method type
+- Check annotation pattern (`@RestController` / `@Controller` + `@ResponseBody`)
+- Identify CUD HTTP methods (POST / PUT / PATCH split policy)
 
-코드 작성 전 프로젝트 템플릿 카탈로그(`.claude/templates/index.json`)를 탐색해 화면 유형과 가장 유사한 템플릿을 참고한다(도메인 필드만 교체, 구조는 유지). 토큰·치환 규약은 `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`.
+---
 
-## 검토 체크리스트 (review 모드)
+## Reference Example — Spring Boot + MyBatis (Stored Procedure)
 
-- [ ] Controller → Service → Mapper 단방향, 패키지 `io.boot.wonder.web`
-- [ ] Mapper 가 SP 전용(`@Select EXEC`), `@Insert/@Update/@Delete` 없음
-- [ ] CUD 에만 `@Options(CALLABLE)`, SELECT/COUNT `@Param` 명시
-- [ ] DTO `BaseDTO` 상속 · `@GridSetup` · `loginUserSeq @JsonIgnore`
-- [ ] Service-CUD `@Transactional` + delete→insert→update + errorCode `"E"` 체크
-- [ ] Controller 반환 타입(String / Page<DTO> / SuccessVO) 규약 준수
-- [ ] 엔티티 직접 노출 없음 (DTO 변환)
+The following is a complete reference implementation of `.claude/rules/backend.md` for a Spring Boot + MyBatis SP project. Use as a quality benchmark when authoring a new rule.
+
+### Layer Structure
+- `Controller → Service → Mapper` one-way dependency. Reverse direction and layer-skipping are forbidden.
+- Controller handles HTTP concerns only; business logic belongs exclusively in Service.
+- Do not expose entities/internal objects directly in Controller responses — convert to DTO.
+- Package root: `io.boot.wonder.web...` (group by domain/feature).
+- One domain = 5 Java files: `{Entity}Controller.java`, `service/{Entity}Service.java`, `mapper/{Entity}Mapper.java`, `dto/{Entity}DTO.java`, `form/{Entity}Form.java`.
+
+### Naming
+- Class names in PascalCase (`WoWorkShift`), variables and methods in camelCase (`woWorkShift`, `selectWoWorkShift`).
+- Mapper method prefixes: `select` / `selectCount` / `insert` / `update` / `delete`.
+- Domain naming conventions: see `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md`.
+
+### Data Access Layer — Stored Procedure Only
+- All queries invoke a stored procedure via `@Select("EXEC dbo.SP_{MODULE}_{DOMAIN}_{ACTION} ...")`.
+- `@Insert` / `@Update` / `@Delete` are forbidden.
+- `@Options(statementType = StatementType.CALLABLE)` only on CUD methods — do not declare on SELECT.
+- SELECT/COUNT methods must explicitly declare `@Param("xxxForm")` and `@Param("pageable")`. CUD uses a single DTO parameter → `@Param` not needed.
+- Stored procedure naming format: `SP_{MODULE}_{DOMAIN}_{ACTION}`. Variants: `_SELECT_TC` (count) · `_PRINT_LIST_SELECT` (print) · `_REQUEST_SEQ_SELECT` (sequence).
+
+### DTO
+- Must extend `BaseDTO` — automatically includes 7 common fields (`rowNo`, `createdBy`, `creationDate`, `lastUpdatedBy`, `lastUpdateDate`, `errorCode`, `errorMsg`); do not redeclare in child DTOs.
+- `rowNo` is a 1-based row number returned by the stored procedure (not assigned by the client).
+- `@GridSetup(gridName)` is required — gridName must exactly match the HTML grid element id.
+- `loginUserSeq` field must be annotated with `@JsonIgnore`.
+- Columns fetched via JOIN must have their source table noted in a comment.
+
+### Form
+- Field declaration order: `createdRows` → `updatedRows` → `deletedRows` → search criteria.
+- When the same Form includes detail rows, prefix them with `detail*` (e.g., `detailCreatedRows`).
+
+### Service — Query
+- Return: `new PageImpl<>(list, pageable, mapper.selectCount(form))` (for print full-list return use `new PageImpl<>(list)`).
+- Do not declare `@Transactional`.
+
+### Service — CUD
+- `@Transactional` is required — only on public CUD methods (do not redeclare on private helpers).
+- Processing order: **delete → insert → update** (order must not change).
+- Check rows for null/empty before entering each processing block.
+- After a stored procedure call, if `"E".equals(dto.getErrorCode())` → throw `ApplicationException` (transaction rolls back automatically).
+- `loginUserSeq` — obtain once via `SecurityUtils.getPrincipal().getUserSeq()` in the public method and pass to private helpers and DTOs.
+
+### Controller
+- Page rendering: return `String` (view path), no `@ResponseBody`.
+- List query: return `Page<DTO>`, `@GetMapping("/list")`.
+- CUD: return `new SuccessVO(MessageUtils.getUpdateMessage(true))`.
+- Save with files: `@PostMapping` (multipart) / Save without files: `@PutMapping`.
+- Class annotation: pure API = `@RestController`, page-only = `@Controller`, mixed = `@Controller` + method-level `@ResponseBody`.
+
+### Template Exploration Before Implementation
+Before writing code, explore the project template catalog (`.claude/templates/index.json`) and reference the template most similar to the screen type.
+
+### Review Checklist
+- [ ] Controller → Service → Mapper one-way, package `io.boot.wonder.web`
+- [ ] Mapper is stored-procedure-only (`@Select EXEC`), no `@Insert/@Update/@Delete`
+- [ ] `@Options(CALLABLE)` only on CUD, `@Param` declared on SELECT/COUNT
+- [ ] DTO extends `BaseDTO` · `@GridSetup` · `loginUserSeq @JsonIgnore`
+- [ ] Service-CUD `@Transactional` + delete→insert→update + errorCode `"E"` check
+- [ ] Controller return types (String / Page<DTO> / SuccessVO) follow the convention
+- [ ] No direct entity exposure (converted to DTO)
+
+---
+
+## Validation Checklist
+
+After completing a generated `.claude/rules/backend.md`, verify:
+
+- [ ] All 9 required sections are present and non-empty
+- [ ] Conventions were extracted from the project's actual code (not assumed from general knowledge)
+- [ ] User confirmed extracted conventions before finalization
+- [ ] Data access technology is unambiguously specified (ORM / SP / raw SQL)
+- [ ] Error handling pattern is explicitly stated
+- [ ] Review Checklist in the generated rule contains actionable binary items
+- [ ] No contradictions with `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md` or `${CLAUDE_PLUGIN_ROOT}/rules/security.md`

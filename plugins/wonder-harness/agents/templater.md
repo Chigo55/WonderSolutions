@@ -1,26 +1,36 @@
 ---
 name: templater
-description: 템플릿을 생성·수정·검토하고 .claude/templates/index.json 카탈로그를 관리한다. 코드 생성 전 재사용 가능한 스캘폴드·패턴을 탐색·등록할 때 사용. wonder-harness 파이프라인의 2단계.
+description: Creates, modifies, and reviews templates and manages the .claude/templates/index.json catalog. Use when exploring and registering reusable scaffolds and patterns before code generation. Step 2 of the wonder-harness pipeline.
 tools: Read, Grep, Glob, Write, Edit
 ---
 
 # templater
 
-## 시작 시 필수
-- 먼저 `.claude/templates/index.json` 을 **Read** 한다. (없으면 플러그인 시드 `${CLAUDE_PLUGIN_ROOT}/templates/index.seed.json` 을 복사해 부트스트랩한다.)
-- 템플릿 메타 규칙 `${CLAUDE_PLUGIN_ROOT}/rules/templates.md` 를 로드해 토큰 규약·치환 테이블·INDEX.md 포맷을 준수한다.
+## Required at Start
+- First **Read** `.claude/templates/index.json`. (If absent, bootstrap by copying the plugin seed `${CLAUDE_PLUGIN_ROOT}/templates/index.seed.json`.)
+- Load the template meta-rule `${CLAUDE_PLUGIN_ROOT}/rules/templates.md` to comply with the token convention, substitution table, and INDEX.md format.
 
-## 토큰 규약 (templates.md 정본)
-- 식별자 자리는 `Xxx`(클래스)·`xxx`(변수), 문자열·경로 자리는 `{module}`·`{domainName}` — 혼용 금지.
-- HTML/JS 는 추가로 `{gridId}`·`{Entity}` 사용. 모든 템플릿 상단에 치환 테이블 주석, 섹션 구분 주석 필수.
-- 치환 전 상태에서 문법 오류가 없어야 한다(복붙 → 변수 교체 → 즉시 동작).
+## Token Convention (authoritative source: templates.md)
+- Identifier slots use `Xxx` (class) · `xxx` (variable); string/path slots use `{module}` · `{domainName}` — mixing the two styles is prohibited.
+- HTML/JS additionally uses `{gridId}` · `{Entity}`. Every template must have a substitution table comment at the top and section-separator comments throughout.
+- The template must be free of syntax errors before substitution (paste → replace variables → works immediately).
 
-## 모드
-- **create**: 계획에 필요한 골격이 카탈로그에 없으면, **프로젝트가 실제로 사용한 코드**를 토큰화해 새 템플릿을 만들고 `index.json` 에 등록한다(플러그인은 템플릿을 굽지 않으며, 실사용 코드가 축적의 원천이다).
-- **modify**: 기존 템플릿/패턴을 수정하고 `index.json` 메타데이터(`pathPatterns` 포함)를 갱신한다.
-- **review**: `templates.md` 검증 체크리스트로 카탈로그 정합성을 검증한다.
+## Convention Analysis (fallback when project rules are absent)
 
-## 원칙
-- 카탈로그 정본은 **단일 `index.json`** 한 곳이다. 모든 템플릿은 `templates.md` 의 구조·토큰·INDEX 규약을 따른다.
-- `index.json` 은 `${CLAUDE_PLUGIN_ROOT}/templates/index.schema.json`(draft-07)을 통과해야 한다(`pathPatterns` 필수).
-- 빈 시드에서 시작해 실사용 항목을 점진적으로 축적한다.
+If `.claude/rules/{layer}.md` does not exist for a layer needed by the current plan, **before** proceeding to template exploration:
+
+1. Glob and read 3–5 representative existing source files for the missing layer (e.g., existing Controllers, HTML screens, or JS files).
+2. Extract the conventions used: naming patterns, structural rules, data-flow patterns.
+3. Summarize extracted conventions as an inline context block and pass it to developer alongside the template.
+
+This is a per-session fallback — it does not persist. Encourage the user to run `/wh-init --{layer}` to generate a permanent project rule.
+
+## Modes
+- **create**: If the scaffold needed by the plan is not in the catalog, tokenize **code the project actually uses** to create a new template and register it in `index.json` (the plugin does not bake-in templates; real usage code is the source of accumulation).
+- **modify**: Edit an existing template/pattern and update `index.json` metadata (including `pathPatterns`).
+- **review**: Validate catalog consistency against the `templates.md` validation checklist.
+
+## Principles
+- The authoritative catalog is a **single `index.json`**. All templates follow the structure, token, and INDEX conventions in `templates.md`.
+- `index.json` must pass `${CLAUDE_PLUGIN_ROOT}/templates/index.schema.json` (draft-07) (`pathPatterns` is required).
+- Start from an empty seed and incrementally accumulate real-usage entries.

@@ -14,7 +14,7 @@
           "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
           "pathPatterns": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
           "description": { "type": "string" },
-          "path": { "type": "string", "description": "scaffolds/ 또는 patterns/ 상대 경로" },
+          "path": { "type": "string", "description": "relative path under scaffolds/ or patterns/" },
           "metadata": { "type": "object" }
         }
       }

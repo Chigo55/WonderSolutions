@@ -11,6 +11,6 @@ process.stdin.on('end', () => {
     if (fp.endsWith('.claude/templates/index.json')) {
       setMarker(input.session_id);
     }
-  } catch (_) { /* 조용히 무시 */ }
+  } catch (_) { /* silently ignore */ }
   process.exit(0);
 });

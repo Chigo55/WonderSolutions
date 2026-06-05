@@ -1,17 +1,17 @@
-<!-- wonder-harness 수정 요청 양식. /wh-modify 가 아래 필수 섹션 충족 여부를 검증합니다.
-     필수 섹션: ## 대상, ## 변경 내용, ## 영향 범위, ## 수용 기준 -->
+<!-- wonder-harness modify request form. /wh-modify validates that the required sections below are present.
+     Required sections: ## Target, ## Changes, ## Impact, ## Acceptance Criteria -->
 
-# 수정 요청 (Modify Request)
+# Modify Request
 
-## 대상
-<!-- 수정 대상 모듈·파일·기능. (필수) -->
+## Target
+<!-- Module, file, or feature to be modified. (required) -->
 
-## 변경 내용
-<!-- 무엇을 어떻게 바꾸는가. (필수) -->
+## Changes
+<!-- What is being changed and how. (required) -->
 
-## 영향 범위
-<!-- 연쇄 영향·회귀 위험·마이그레이션 필요 여부. (필수) -->
+## Impact
+<!-- Cascading effects, regression risks, and migration requirements. (required) -->
 
-## 수용 기준
-<!-- 완료 판단 기준. (필수) -->
+## Acceptance Criteria
+<!-- Criteria that define completion. (required) -->
 - [ ]

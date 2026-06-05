@@ -1,70 +1,70 @@
-# wonder-harness 마켓플레이스
+# wonder-harness Marketplace
 
-Claude Code 개발 하네스 단일 플러그인 마켓플레이스.
+A single-plugin marketplace for the Claude Code development harness.
 
-> **대상 스택**: Java 17 / Spring Boot 3.x / MyBatis(SQL Server 저장프로시저) / Thymeleaf / Kendo UI 웹컴포넌트 / Bootstrap 5 / ES6.
-> 플러그인은 오케스트레이션 파이프라인 하네스로 구현됨 — 에이전트(planner·templater·developer·ruler), 커맨드(wh-create·wh-modify·wh-review), 템플릿 탐색 강제 훅, 규칙(backend·frontend·security·workflow·templates), 요청/템플릿 시드를 포함.
+> **Target stack**: Java 17 / Spring Boot 3.x / MyBatis (SQL Server stored procedures) / Thymeleaf / Kendo UI web components / Bootstrap 5 / ES6.
+> The plugin is implemented as an orchestration pipeline harness — includes agents (planner·templater·developer·ruler), commands (wh-create·wh-modify·wh-review), a template-explore enforcement hook, rules (backend·frontend·security·workflow·templates), and request/template seeds.
 
-## 개발 명령어
+## Development Commands
 
 ```bash
-# 플러그인 구조 검증
+# Validate plugin structure
 npm run validate
 
-# 로컬 로드 (개발·테스트)
+# Load locally (development·testing)
 claude --plugin-dir ./plugins/wonder-harness
 ```
 
-## 환경 요구사항
+## Environment Requirements
 
 - Node.js >= 18.0.0
 
-## 저장소 구조 (단일 플러그인 마켓플레이스)
+## Repository Structure (single-plugin marketplace)
 
 ```
-root/                           ← 마켓플레이스 저장소
+root/                           ← marketplace repository
   ├── .claude-plugin/
-  │     marketplace.json        ← 마켓플레이스 카탈로그 (wonder-harness 단독 등재)
+  │     marketplace.json        ← marketplace catalog (wonder-harness standalone listing)
   │
   ├── plugins/
-  │     └── wonder-harness/     ← wonder-harness 플러그인
-  │           ├── .claude-plugin/plugin.json   ← 플러그인 매니페스트
-  │           ├── commands/     ← 슬래시 커맨드 (wh-create·wh-modify·wh-review)
-  │           ├── agents/       ← 격리 서브에이전트 (planner·templater·developer·ruler)
-  │           ├── hooks/        ← 이벤트 훅 (hooks.json + scripts/ — 템플릿 탐색 강제)
-  │           ├── rules/        ← 하네스 규칙 (backend·frontend·security·workflow·templates)
-  │           ├── templates/    ← 템플릿 스캘폴드 + index 스키마·시드
-  │           ├── requests/     ← 요청 양식 시드 (create_request·modify_request)
-  │           └── skills/       ← SKILL.md 스킬 (grill-me·handoff·write-a-skill)
+  │     └── wonder-harness/     ← wonder-harness plugin
+  │           ├── .claude-plugin/plugin.json   ← plugin manifest
+  │           ├── commands/     ← slash commands (wh-create·wh-modify·wh-review)
+  │           ├── agents/       ← isolated sub-agents (planner·templater·developer·ruler)
+  │           ├── hooks/        ← event hooks (hooks.json + scripts/ — template explore enforcement)
+  │           ├── rules/        ← harness rules (backend·frontend·security·workflow·templates)
+  │           ├── templates/    ← template scaffold + index schema·seed
+  │           ├── requests/     ← request form seeds (create_request·modify_request)
+  │           └── skills/       ← SKILL.md skills (grill-me·handoff·write-a-skill)
   │
-  ├── CLAUDE.md                 ← 이 파일
-  └── package.json              ← 모노레포 루트
+  ├── CLAUDE.md                 ← this file
+  └── package.json              ← monorepo root
 ```
 
-## 각 플러그인 구조 규칙
+## Plugin Structure Rules
 
-| 위치 | 내용 |
+| Location | Contents |
 |------|------|
-| `.claude-plugin/plugin.json` | 매니페스트만 (다른 파일 넣지 말 것) |
-| `skills/` | `<name>/SKILL.md` 형태 |
-| `agents/` | `<name>.md` 마크다운 에이전트 |
-| `commands/` | `<name>.md` 슬래시 커맨드 |
-| `hooks/hooks.json` | 훅 선언 정본 (스크립트는 `hooks/scripts/`) |
-| `rules/` | `<name>.md` 하네스 규칙 (ruler 소유) |
-| `templates/` | 스캘폴드 + `index.schema.json`·`index.seed.json` |
-| `requests/` | 요청 양식 시드 (`.claude/requests/`로 복사됨) |
+| `.claude-plugin/plugin.json` | Manifest only (do not place other files here) |
+| `skills/` | `<name>/SKILL.md` format |
+| `agents/` | `<name>.md` markdown agent |
+| `commands/` | `<name>.md` slash command |
+| `hooks/hooks.json` | Authoritative hook declaration (scripts go in `hooks/scripts/`) |
+| `rules/` | `<name>.md` harness rule (owned by ruler) |
+| `templates/` | Scaffold + `index.schema.json`·`index.seed.json` |
+| `requests/` | Request form seeds (copied to `.claude/requests/`) |
 
-## 버전 업데이트 규칙
+## Version Update Rules
 
-버전 변경 시 아래 2개 파일을 동시 수정:
+When changing the version, edit both files simultaneously:
 - `plugins/wonder-harness/.claude-plugin/plugin.json` — `"version": "x.x.x"`
-- `.claude-plugin/marketplace.json` — 해당 플러그인 항목 `"version": "x.x.x"`
+- `.claude-plugin/marketplace.json` — the corresponding plugin entry `"version": "x.x.x"`
 
-커밋 순서: `fix/feat:` 커밋 → 별도 `chore: bump version to x.x.x` 커밋
+Commit order: `fix/feat:` commit → separate `chore: bump version to x.x.x` commit
 
-## 개발 규칙
+## Development Rules
 
-- 플러그인 경로는 모두 `./`로 시작하는 상대 경로
-- 플러그인 외부 파일 참조 불가 (캐시 복사 방식)
-- 훅은 경량 JS (Node.js built-in만 사용 — 외부 의존성 금지)
-- 훅은 기본 non-blocking (차단 아닌 제안). **예외**: 템플릿 탐색 강제 훅(`hooks/scripts/enforce-template.js`)은 미탐색 상태의 `Write|Edit` 를 `permissionDecision: "deny"` 로 차단한다.
+- All plugin paths must be relative paths starting with `./`
+- No references to files outside the plugin (cache-copy approach)
+- Hooks must be lightweight JS (Node.js built-ins only — no external dependencies)
+- Hooks are non-blocking by default (suggestions, not blocks). **Exception**: the template-explore enforcement hook (`hooks/scripts/enforce-template.js`) blocks `Write|Edit` calls when the template has not yet been explored, via `permissionDecision: "deny"`.
