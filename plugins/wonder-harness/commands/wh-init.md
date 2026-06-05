@@ -1,49 +1,152 @@
 ---
-description: Generates project-specific rules in .claude/rules/ by exploring the project codebase. Run once per project before using wh-create.
+description: Initializes wonder-harness for a project — copies request seeds, reverse-engineers ADRs, generates project-specific rules, and produces HTML reports. Run once per project before using wh-create.
 argument-hint: "[--backend] [--frontend] [--security] [--templates] — omit all flags to initialize all layers"
 ---
 
 # /wh-init
 
-Generates project-specific rule files at `.claude/rules/` by having **ruler (generate mode)** explore the project's existing code and extract its conventions.
+Initializes wonder-harness on a new project through four mandatory steps executed in order for each selected layer. Step ordering is enforced by hook — skipping or reordering steps will be blocked.
 
-Run this once when starting to use wonder-harness on a new project. Each generated rule replaces the stack-agnostic meta-rule with a rule tailored to the project's actual conventions.
+## 0. Parse flags and copy request seeds
 
-## 1. Parse flags
+Read arguments for `--backend`, `--frontend`, `--security`, `--templates`.
+If no flags provided, treat all four layers as selected.
 
-Read the arguments for `--backend`, `--frontend`, `--security`, `--templates`.
+Copy request seeds (runs once, before the layer loop):
+- This is handled automatically by the `SessionStart` hook (`init-requests.js`).
+- Verify `.claude/requests/create_request.md` and `.claude/requests/modify_request.md` exist.
+- If either is missing, run: `node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/init-requests.js` via the Bash tool with `{"cwd": "<project_cwd>"}` on stdin.
 
-- If **no flags** are provided, treat all four layers as selected.
-- Process selected layers **sequentially** (one at a time).
+## 1–3. For each selected layer (sequentially)
 
-## 2. For each selected layer
+Process layers one at a time. For each layer:
 
-### 2a. Existence check
+### Step 1 — ADR Reverse-Engineering
 
-Check whether `.claude/rules/{layer}.md` already exists.
+Invoke **ruler** in **adr-extract mode** for the layer.
 
-- **Exists** → ask the user:
-  > "`.claude/rules/{layer}.md` already exists. Overwrite or skip? (overwrite / skip)"
+Ruler will:
+1. Explore project source files for this layer
+2. Infer 3–7 architectural decisions
+3. Present the ADR summary to the user for confirmation
+4. Write `.claude/adr/{layer}.md`
+
+After ruler confirms the ADR file is written, record the timestamp in state:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/write-state.js" "<cwd>" "adr.{layer}" "<ISO-timestamp>"
+```
+
+Replace `{layer}` with the actual layer name and `<ISO-timestamp>` with the current UTC time in ISO 8601 format (e.g. `2026-06-05T10:00:00Z`).
+
+### Step 2 — Rule Generation
+
+Invoke **ruler** in **generate mode** for the layer.
+
+Ruler will:
+1. Load the meta-rule from `${CLAUDE_PLUGIN_ROOT}/rules/{layer}.md`
+2. Load `.claude/adr/{layer}.md` (required — ruler will abort if absent)
+3. Draft the project-specific rule, cross-referencing ADR constraints
+4. Present extracted conventions and any ADR conflicts to the user
+5. Write `.claude/rules/{layer}.md`
+
+After ruler confirms the rule file is written, record the timestamp:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/write-state.js" "<cwd>" "rules.{layer}" "<ISO-timestamp>"
+```
+
+### Step 3 — HTML Report
+
+Generate a self-contained HTML report for this layer. The report filename must follow the pattern `wh-init-{layer}-YYYYMMDD-HHMMSS.html` where the timestamp is UTC.
+
+Write the report to `.claude/reports/wh-init-{layer}-YYYYMMDD-HHMMSS.html`.
+
+The report must contain these sections (inline CSS only, no external resources):
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>wh-init report — {layer} — {project name}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 960px; margin: 2rem auto; color: #1a1a1a; }
+    h1 { border-bottom: 2px solid #333; }
+    h2 { margin-top: 2rem; color: #444; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+    th { background: #f5f5f5; font-weight: 600; }
+    pre { background: #f8f8f8; padding: 1rem; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; }
+    .conflict { background: #fff3cd; border-left: 4px solid #f0ad4e; padding: 0.5rem 1rem; margin: 0.5rem 0; }
+    .footer { margin-top: 3rem; color: #888; font-size: 0.85rem; border-top: 1px solid #eee; padding-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>wh-init Report — {Layer} Layer</h1>
+  <p><strong>Project:</strong> {project name} &nbsp;|&nbsp; <strong>Generated:</strong> {UTC datetime}</p>
+
+  <h2>ADR Summary</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Title</th><th>Decision</th><th>Consequences</th></tr></thead>
+    <tbody>
+      <!-- one row per ADR entry from .claude/adr/{layer}.md -->
+    </tbody>
+  </table>
+
+  <h2>Generated Rule</h2>
+  <pre>{full content of .claude/rules/{layer}.md}</pre>
+
+  <h2>ADR ↔ Rule Mapping</h2>
+  <table>
+    <thead><tr><th>ADR</th><th>Rule Section Influenced</th></tr></thead>
+    <tbody><!-- populated from your cross-reference during generation --></tbody>
+  </table>
+
+  <h2>Conflicts Resolved</h2>
+  <!-- If no conflicts: <p>No conflicts between ADR consequences and meta-rule defaults.</p> -->
+  <!-- For each conflict: -->
+  <div class="conflict">
+    <strong>{ADR-N}:</strong> {meta-rule default} overridden by {ADR consequence} — resolved as: {resolution}
+  </div>
+
+  <div class="footer">
+    Generated by wonder-harness wh-init &nbsp;|&nbsp; Plugin root: {CLAUDE_PLUGIN_ROOT}
+  </div>
+</body>
+</html>
+```
+
+After writing the report file, record it in state:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/write-state.js" "<cwd>" "reports.{layer}" "wh-init-{layer}-YYYYMMDD-HHMMSS.html"
+```
+
+## 4. Result Report
+
+After all selected layers are processed, output:
+
+```
+wh-init complete.
+
+Generated:
+  ✓ backend  — .claude/adr/backend.md, .claude/rules/backend.md, .claude/reports/wh-init-backend-YYYYMMDD-HHMMSS.html
+  ...
+
+Skipped:
+  — frontend  (already existed, user chose skip)
+  ...
+
+Next step: Run /wh-create to build a new domain module.
+Open .claude/reports/ to review the initialization reports.
+```
+
+## Overwrite Policy
+
+Before Step 1 for each layer, check whether `.claude/adr/{layer}.md` or `.claude/rules/{layer}.md` already exists.
+
+- If either exists, ask:
+  > "`.claude/adr/{layer}.md` and/or `.claude/rules/{layer}.md` already exist. Overwrite or skip? (overwrite / skip)"
   - `skip` → proceed to the next layer.
-  - `overwrite` → continue to step 2b.
-- **Does not exist** → continue to step 2b.
-
-### 2b. Invoke ruler (generate mode)
-
-Invoke the **ruler** agent in **generate mode** with the selected layer:
-
-1. Ruler loads `${CLAUDE_PLUGIN_ROOT}/rules/{layer}.md` (meta-rule).
-2. Ruler explores the project's existing source files following the meta-rule's Exploration Guide.
-3. Ruler drafts the generated rule from the extracted conventions.
-4. Ruler presents the extracted conventions to the user for confirmation (overwrite/skip already decided in step 2a).
-5. After confirmation, ruler writes the rule to `.claude/rules/{layer}.md`.
-
-## 3. Result
-
-After all selected layers are processed, report:
-
-- Which layers were **generated** (path written)
-- Which layers were **skipped** (already existed, user chose skip)
-
-Remind the user:
-> "Project rules are ready. Run `/wh-create` to start building a new domain."
+  - `overwrite` → continue with Step 1, which will overwrite both artifacts and reset state entries for this layer.
