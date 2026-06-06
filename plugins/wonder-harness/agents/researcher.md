@@ -18,8 +18,8 @@ Performs Stage 2 (Research) of the wonder-harness pipeline.
 
 ### Step 0 — Template Lookup
 
-1. Read `${CLAUDE_PLUGIN_ROOT}/templates/index.json`. If `templates` array is empty, skip to Step 1.
-2. Extract task keywords from §Analysis (technology names, pattern types, layer names).
+1. Read `${CLAUDE_PLUGIN_ROOT}/templates/index.json`. If the file does not exist or the `templates` array is empty, skip to Step 1.
+2. Extract task keywords from §Analysis (technology names, pattern types, layer names, and other task-specific nouns).
 3. For each template entry in the index, check whether any of its `tags` match the extracted keywords.
 4. For each match, read `${CLAUDE_PLUGIN_ROOT}/templates/scaffolds/{id}.md`.
 5. Embed matched templates in §Research under **Available templates** (see Deliverable). If no templates match, omit the **Available templates** section entirely.
