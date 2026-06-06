@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>init-requests 훅 — 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#0f766e;--accent:#f59e0b;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:var(--primary);color:#fff;padding:.8rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,#0f766e,#0d9488);color:#fff;padding:2.5rem 2rem 2rem;}
+  .hero .chip{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.25rem .8rem;font-size:.78rem;margin-bottom:.8rem;}
+  .hero h1{font-size:1.8rem;font-weight:700;margin-bottom:.4rem;}
+  .hero p{opacity:.88;font-size:.95rem;max-width:580px;}
+  .container{max-width:860px;margin:0 auto;padding:1.8rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.4rem;margin-bottom:1.4rem;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .card h2{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:3px;height:1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  th{background:#f1f5f9;text-align:left;padding:.55rem .75rem;font-weight:600;color:var(--muted);font-size:.82rem;}
+  td{padding:.55rem .75rem;border-top:1px solid var(--border);vertical-align:top;}
+  .non-blocking{display:inline-block;background:#dcfce7;color:#166534;border-radius:5px;padding:.1rem .5rem;font-size:.78rem;font-weight:600;}
+  .improve-item{display:flex;gap:.6rem;margin:.45rem 0;font-size:.9rem;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  ul{padding-left:1.3rem;}
+  li{margin:.3rem 0;font-size:.9rem;}
+  footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="../hooks.html">Hooks</a><span>/</span>init-requests
+</div>
+<div class="hero">
+  <div class="chip">Hook · SessionStart · <span style="background:rgba(255,255,255,.25);border-radius:4px;padding:.1rem .4rem;">비차단</span></div>
+  <h1>init-requests</h1>
+  <p>세션 시작 시 요청 시드 파일을 .claude/requests/에 자동 복사해 사용자가 매번 수동으로 준비하지 않아도 되게 한다.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <p style="font-size:.9rem;">SessionStart 이벤트에 반응해 <code>create_request.md</code>와 <code>modify_request.md</code> 시드 파일이 없을 경우 자동 복사한다. 비차단 — 세션 시작을 방해하지 않는다.</p>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <ul>
+      <li>SessionStart 이벤트 수신.</li>
+      <li><code>.claude/requests/create_request.md</code>·<code>modify_request.md</code> 존재 여부 확인.</li>
+      <li>없으면 <code>plugins/wonder-harness/requests/</code>에서 복사.</li>
+      <li>비차단; 세션 시작 간섭 없음. 타임아웃 5초.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th></th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td><strong>입력</strong></td><td>SessionStart 이벤트</td></tr>
+        <tr><td><strong>출력</strong></td><td><code>.claude/requests/create_request.md</code>, <code>modify_request.md</code> (없을 경우에만)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li>시드 파일이 <code>plugins/wonder-harness/requests/</code>에 존재해야 한다.</li>
+      <li><code>.claude/requests/</code> 디렉토리 쓰기 권한 필요.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span>기존 요청 파일이 30일 이상 경과한 경우 갱신 제안.</span></div>
+    <div class="improve-item"><span>복사된 파일 vs 이미 존재하는 파일 로그 출력으로 투명성 제공.</span></div>
+    <div class="improve-item"><span>프로젝트 로컬 버전으로 시드를 재정의하는 커스텀 템플릿 지원.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — init-requests 훅</footer>
+</body>
+</html>

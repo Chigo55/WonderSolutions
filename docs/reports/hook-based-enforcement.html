@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>훅 기반 파이프라인 강제 — wonder-harness 설계 보고서</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+      font-size: 15px; line-height: 1.75; color: #1a1a1a;
+      max-width: 960px; margin: 2.5rem auto; padding: 0 1.5rem;
+      background: #fff;
+    }
+    h1 { font-size: 2rem; border-bottom: 3px solid #1a1a1a; padding-bottom: .5rem; margin-bottom: .25rem; }
+    h2 { font-size: 1.35rem; margin-top: 3rem; color: #111; border-left: 4px solid #333; padding-left: .75rem; }
+    h3 { font-size: 1.1rem; margin-top: 2rem; color: #333; }
+    .meta { color: #666; font-size: .9rem; margin-bottom: 2.5rem; }
+    p { margin: .75rem 0; }
+    a { color: #0066cc; }
+
+    /* 테이블 */
+    table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .9rem; }
+    th { background: #f2f2f2; font-weight: 600; border: 1px solid #ccc; padding: .45rem .75rem; text-align: left; }
+    td { border: 1px solid #ddd; padding: .45rem .75rem; vertical-align: top; }
+    tr:nth-child(even) td { background: #fafafa; }
+
+    /* 코드 */
+    pre {
+      background: #1e1e2e; color: #cdd6f4;
+      border-radius: 6px; padding: 1.1rem 1.25rem;
+      overflow-x: auto; font-size: .83rem; line-height: 1.6;
+      margin: 1rem 0;
+    }
+    code { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; }
+    p code, li code, td code {
+      background: #f0f0f0; border: 1px solid #ddd;
+      border-radius: 3px; padding: .1em .35em; font-size: .88em;
+    }
+
+    /* 콜아웃 */
+    .callout {
+      border-left: 4px solid #555; background: #f8f8f8;
+      padding: .75rem 1rem; margin: 1.25rem 0; border-radius: 0 6px 6px 0;
+    }
+    .callout.warn  { border-color: #e07b00; background: #fffbf0; }
+    .callout.info  { border-color: #0077cc; background: #f0f7ff; }
+    .callout.good  { border-color: #2a9d2a; background: #f0fff0; }
+    .callout strong { display: block; margin-bottom: .25rem; font-size: .9rem; color: #555; }
+
+    /* 파이프라인 다이어그램 */
+    .pipeline {
+      display: flex; align-items: center; gap: 0;
+      margin: 1.5rem 0; flex-wrap: wrap;
+    }
+    .stage {
+      background: #1a1a1a; color: #fff;
+      padding: .55rem 1.1rem; border-radius: 6px;
+      font-weight: 600; font-size: .9rem; white-space: nowrap;
+    }
+    .arrow {
+      color: #999; font-size: 1.4rem; padding: 0 .4rem; line-height: 1;
+    }
+    .gate {
+      background: #e8f4e8; border: 1.5px solid #2a9d2a;
+      border-radius: 4px; padding: .3rem .65rem;
+      font-size: .78rem; color: #1a5c1a; white-space: nowrap;
+      margin: 0 .15rem;
+    }
+
+    /* 비교 박스 */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.25rem 0; }
+    .compare-box { border: 1.5px solid #ddd; border-radius: 8px; padding: 1rem; }
+    .compare-box.before { border-color: #e07b00; }
+    .compare-box.after  { border-color: #2a9d2a; }
+    .compare-box h4 { margin: 0 0 .5rem; font-size: .9rem; }
+    .compare-box.before h4 { color: #c05a00; }
+    .compare-box.after  h4 { color: #1a5c1a; }
+    @media (max-width: 640px) { .compare { grid-template-columns: 1fr; } }
+
+    /* 훅 플로우 */
+    .hook-flow { margin: 1.25rem 0; }
+    .hook-row { display: flex; align-items: flex-start; gap: .75rem; margin: .4rem 0; }
+    .hook-label {
+      min-width: 180px; background: #333; color: #fff;
+      padding: .3rem .7rem; border-radius: 4px; font-size: .82rem;
+      font-family: monospace; white-space: nowrap;
+    }
+    .hook-desc { font-size: .88rem; color: #444; padding-top: .25rem; }
+
+    /* 섹션 번호 */
+    h2::before { content: attr(data-n) ". "; color: #999; font-weight: 400; }
+
+    footer { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid #eee; color: #888; font-size: .85rem; }
+  </style>
+</head>
+<body>
+
+<h1>훅 기반 파이프라인 강제</h1>
+<p class="meta">
+  wonder-harness 설계 보고서 &nbsp;|&nbsp;
+  작성일: 2026-06-06 &nbsp;|&nbsp;
+  대상 버전: 0.5.x &nbsp;|&nbsp;
+  대상 커맨드: wh-create · wh-modify · wh-init
+</p>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="1">문제: LLM 지시는 보장이 아니다</h2>
+
+<p>
+  wonder-harness의 파이프라인은 네 에이전트가 순서대로 실행되는 체인 구조입니다.
+</p>
+
+<div class="pipeline">
+  <span class="stage">planner</span>
+  <span class="arrow">→</span>
+  <span class="stage">templater</span>
+  <span class="arrow">→</span>
+  <span class="stage">developer</span>
+  <span class="arrow">→</span>
+  <span class="stage">ruler</span>
+</div>
+
+<p>
+  이 순서가 커맨드 파일의 마크다운 지시문으로만 표현될 경우, LLM은 <em>지시를 따르려 하지만</em>
+  아무것도 강제하지 않습니다. 실제로 두 가지 실패 패턴이 관찰됩니다.
+</p>
+
+<table>
+  <thead><tr><th>실패 패턴</th><th>발생 상황</th><th>결과</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>단계 건너뜀</strong></td>
+      <td>templater가 완료되기 전에 developer가 코드를 작성</td>
+      <td>템플릿이 활용되지 않음. 일관성 검증 무의미</td>
+    </tr>
+    <tr>
+      <td><strong>커맨드 순서 무시</strong></td>
+      <td>wh-init이 완료되기 전에 wh-create 실행</td>
+      <td>프로젝트 규칙 없이 코드 생성. ruler가 메타 규칙만으로 검증</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <strong>핵심 문제</strong>
+  두 실패 모두 <em>조용히</em> 발생합니다. 파이프라인은 완료된 것처럼 보이지만, 품질 게이트는 이미 우회됐습니다.
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="2">해결책: 훅을 물리적 게이트로</h2>
+
+<p>
+  Claude Code 훅은 OS 수준에서 툴 호출을 가로챕니다. <code>PreToolUse</code> 훅이
+  <code>permissionDecision: "deny"</code>를 반환하면, LLM의 지시와 무관하게 파일 쓰기가
+  <strong>물리적으로 불가능</strong>해집니다.
+</p>
+
+<div class="compare">
+  <div class="compare-box before">
+    <h4>⚠ Before — 지시 기반 (권고)</h4>
+    <p style="font-size:.88rem; color:#555; margin:0">
+      "Claude, 이 순서를 따르세요."<br>
+      → LLM이 무시하거나 잊으면 뚫림
+    </p>
+  </div>
+  <div class="compare-box after">
+    <h4>✓ After — 훅 기반 (강제)</h4>
+    <p style="font-size:.88rem; color:#555; margin:0">
+      "선행 상태가 없으면 파일 시스템이 거부한다."<br>
+      → 상태가 없으면 물리적으로 쓸 수 없음
+    </p>
+  </div>
+</div>
+
+<div class="callout info">
+  <strong>핵심 통찰</strong>
+  의미 있는 파이프라인 동작은 결국 <strong>파일 쓰기</strong>로 귀결됩니다.
+  templater는 <code>index.json</code>을 씁니다. developer는 Java/HTML/JS 파일을 씁니다.
+  ruler는 검증 보고서를 씁니다. 각 쓰기는 가로챌 수 있는 체크포인트입니다.
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="3">아키텍처</h2>
+
+<h3>3.1 상태 기계 — <code>.wh-state.json</code></h3>
+
+<p>
+  모든 파이프라인 상태는 프로젝트 루트의 <code>.claude/.wh-state.json</code>에 저장됩니다.
+  훅 스크립트와 에이전트 모두 이 파일을 통해 통신합니다.
+</p>
+
+<pre><code>{
+  "version": 1,
+  "current": {
+    "command": "wh-create",   // 현재 활성 커맨드
+    "domain":  "eqEquipment"  // 현재 작업 도메인 (planner가 기록)
+  },
+  "wh-create": {
+    "planner":   "done",  // 완료 → done / 미완료 → null
+    "templater": "done",
+    "developer": null,
+    "ruler":     null
+  },
+  "wh-modify": { ... },
+  "adr":     { "backend": "2026-06-06T10:00:00Z", ... },
+  "rules":   { "backend": "2026-06-06T10:05:00Z", ... },
+  "reports": { "backend": "wh-init-backend-20260606-100500.html", ... }
+}</code></pre>
+
+<p>
+  상태 전환은 에이전트가 <code>write-state.js</code>를 통해 직접 기록합니다.
+  에이전트 자신이 자신의 완료를 가장 잘 알기 때문입니다.
+</p>
+
+<pre><code>node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/write-state.js" "&lt;cwd&gt;" "wh-create.planner" "done"</code></pre>
+
+<h3>3.2 훅 스크립트 구성</h3>
+
+<p>
+  세 개의 enforce 스크립트가 <code>PreToolUse(Write|Edit)</code>에 순서대로 등록됩니다.
+</p>
+
+<div class="hook-flow">
+  <div class="hook-row">
+    <span class="hook-label">PreToolUse(Write|Edit)</span>
+    <span class="hook-desc" style="color:#999; font-style:italic">모든 파일 쓰기/수정 시도 시 발화</span>
+  </div>
+  <div class="hook-row" style="margin-left:1.5rem">
+    <span class="hook-label">enforce-init.js</span>
+    <span class="hook-desc">wh-init 단계 순서 강제 + 전체 커맨드 cross-gate (rules 파일 존재 확인)</span>
+  </div>
+  <div class="hook-row" style="margin-left:1.5rem">
+    <span class="hook-label">enforce-create.js</span>
+    <span class="hook-desc">wh-create 파이프라인 단계 강제 + 템플릿 탐색 게이트 (current.command=wh-create일 때만 활성)</span>
+  </div>
+  <div class="hook-row" style="margin-left:1.5rem">
+    <span class="hook-label">enforce-modify.js</span>
+    <span class="hook-desc">wh-modify 파이프라인 단계 강제 + 템플릿 탐색 게이트 (current.command=wh-modify일 때만 활성)</span>
+  </div>
+</div>
+
+<p>
+  각 스크립트는 <code>state.current.command</code>가 자신의 커맨드와 다르면 즉시 allow로 종료합니다.
+  커맨드 간 간섭이 없습니다.
+</p>
+
+<h3>3.3 스크립트별 강제 규칙</h3>
+
+<p><strong>enforce-init.js</strong> — active 커맨드와 무관하게 항상 실행</p>
+<table>
+  <thead><tr><th>쓰려는 파일</th><th>선행 조건</th></tr></thead>
+  <tbody>
+    <tr><td><code>.claude/rules/{layer}.md</code></td><td><code>state.adr.{layer}</code> non-null</td></tr>
+    <tr><td><code>.claude/reports/wh-init-{layer}-*.html</code></td><td><code>state.rules.{layer}</code> non-null</td></tr>
+    <tr><td>비<code>.claude/</code> 코드 파일 (전체)</td><td>임의 레이어의 <code>state.rules.{layer}</code> non-null</td></tr>
+  </tbody>
+</table>
+
+<p><strong>enforce-create.js</strong> — <code>current.command === "wh-create"</code>일 때만 활성</p>
+<table>
+  <thead><tr><th>쓰려는 파일</th><th>선행 조건</th></tr></thead>
+  <tbody>
+    <tr><td><code>.claude/templates/**</code></td><td><code>wh-create.planner === "done"</code></td></tr>
+    <tr><td>코드 파일 (비<code>.claude/</code>)</td><td><code>wh-create.templater === "done"</code></td></tr>
+    <tr><td>코드 파일 + 템플릿 카탈로그 매칭</td><td>위 조건 + 세션 내 index.json 읽기 완료</td></tr>
+    <tr><td><code>.claude/reports/wh-create-*</code></td><td><code>wh-create.developer === "done"</code></td></tr>
+  </tbody>
+</table>
+
+<p><strong>enforce-modify.js</strong> — <code>current.command === "wh-modify"</code>일 때만 활성. enforce-create.js와 동일 구조, 보고서 경로만 <code>wh-modify-*</code>로 상이.</p>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="4">파이프라인 전체 흐름</h2>
+
+<div class="pipeline" style="margin-bottom:.5rem">
+  <span class="stage" style="background:#555; font-size:.8rem">Step 0</span>
+  <span class="arrow">→</span>
+  <span class="stage">planner</span>
+  <span class="gate">planner=done ✓</span>
+  <span class="arrow">→</span>
+  <span class="stage">templater</span>
+  <span class="gate">templater=done ✓</span>
+  <span class="arrow">→</span>
+  <span class="stage">developer</span>
+  <span class="gate">developer=done ✓</span>
+  <span class="arrow">→</span>
+  <span class="stage">ruler</span>
+</div>
+<p style="font-size:.82rem; color:#666; margin-top:.25rem">
+  각 단계 사이의 게이트(초록 태그)는 <code>enforce-create.js</code>가 PreToolUse 훅으로 강제합니다.
+</p>
+
+<h3>단계 건너뜀 시 실제 동작</h3>
+
+<p>
+  templater 완료 전에 developer가 코드 파일 쓰기를 시도하면:
+</p>
+
+<pre><code>PreToolUse(Write) 발화
+  대상 파일: src/main/java/io/boot/wonder/web/eq/EqEquipmentController.java
+
+enforce-create.js 체크:
+  state.current.command === "wh-create"       → ✓ 활성
+  isClaudeInternal(filePath) === false         → 코드 파일 게이트 진입
+  state["wh-create"].templater === null        → 선행 조건 미충족
+
+응답:
+  permissionDecision: "deny"
+  permissionDecisionReason: "[wh-create] Templater has not completed.
+    Run the templater agent before writing code files."
+
+→ 파일 쓰기 거부. LLM은 진행 불가.</code></pre>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="5">커맨드 초기화 — 항상 처음부터</h2>
+
+<p>
+  커맨드는 실행 시작 시 파이프라인 상태를 <strong>즉시 초기화</strong>합니다.
+  완료 시점이 아닌 시작 시점에 초기화하는 이유:
+</p>
+
+<ul>
+  <li>중단된 이전 실행의 부분 상태가 다음 실행의 게이트를 silently 열어주는 현상을 방지</li>
+  <li>요청 파일이 변경된 후 재실행해도 planner부터 다시 시작함을 보장</li>
+  <li>상태 추론 없이 예측 가능한 동작 확보</li>
+</ul>
+
+<p><code>wh-create.md</code> Step 0 초기화 시퀀스:</p>
+
+<pre><code>node write-state.js "&lt;cwd&gt;" "current.command"    "wh-create"
+node write-state.js "&lt;cwd&gt;" "wh-create.planner"   null
+node write-state.js "&lt;cwd&gt;" "wh-create.templater" null
+node write-state.js "&lt;cwd&gt;" "wh-create.developer" null
+node write-state.js "&lt;cwd&gt;" "wh-create.ruler"     null</code></pre>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="6">에이전트 책임 — 상태 신호</h2>
+
+<p>
+  각 에이전트는 자신의 작업 완료 후 <code>write-state.js</code>를 직접 호출해 상태를 기록합니다.
+  에이전트 지시문의 <strong>Pipeline State Signal</strong> 섹션에 명시됩니다.
+</p>
+
+<table>
+  <thead><tr><th>에이전트</th><th>읽는 상태</th><th>기록하는 상태</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>planner</td>
+      <td>—</td>
+      <td><code>current.domain</code>, <code>{command}.planner=done</code></td>
+    </tr>
+    <tr>
+      <td>templater</td>
+      <td><code>current.command</code></td>
+      <td><code>{command}.templater=done</code></td>
+    </tr>
+    <tr>
+      <td>developer</td>
+      <td><code>current.command</code></td>
+      <td><code>{command}.developer=done</code></td>
+    </tr>
+    <tr>
+      <td>ruler</td>
+      <td><code>current.command</code>, <code>current.domain</code></td>
+      <td>보고서 파일 출력, <code>{command}.ruler=done</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout good">
+  <strong>설계 원칙</strong>
+  완료를 가장 잘 아는 주체(에이전트 자신)가 완료를 선언합니다.
+  커맨드나 외부 훅이 에이전트 내부 완료를 추론하지 않습니다.
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="7">템플릿 탐색 게이트 흡수</h2>
+
+<p>
+  기존 독립 스크립트였던 <code>enforce-template.js</code>의 로직은
+  <code>enforce-create.js</code>와 <code>enforce-modify.js</code>에 흡수됐습니다.
+</p>
+
+<p>흡수 후 게이트 우선순위:</p>
+
+<pre><code>developer가 코드 파일 쓰기 시도
+  → templater=done? NO  → DENY: "Run templater first"  ← 단계 게이트 우선
+  → templater=done? YES
+      → 템플릿 카탈로그 매칭? YES + 세션 마커 없음?
+          → DENY: "Read index.json first"               ← 탐색 게이트
+      → 매칭 없음
+          → ALLOW</code></pre>
+
+<p>
+  독립 훅 등록이 사라지고, 에러 메시지에 "어느 단계가 선행되어야 하는가"가 포함됩니다.
+</p>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="8">강제 범위 경계</h2>
+
+<table>
+  <thead><tr><th>강제하는 것</th><th>강제하지 않는 것</th></tr></thead>
+  <tbody>
+    <tr><td>wh-create / wh-modify 내 단계 순서</td><td>각 단계 산출물의 품질·정확성</td></tr>
+    <tr><td>코드 쓰기 전 템플릿 탐색</td><td>올바른 템플릿이 선택됐는지</td></tr>
+    <tr><td>코드 쓰기 전 wh-init 선행 여부</td><td>생성된 규칙이 코드에 올바르게 적용됐는지</td></tr>
+    <tr><td>ruler 보고서 쓰기 전 developer 완료</td><td>ruler 검증 결과의 정확성</td></tr>
+    <tr><td>wh-modify 훅의 wh-create 간섭 방지</td><td>다중 도메인 병렬 작업</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>명확한 한계</strong>
+  훅은 <em>순서</em>와 <em>존재</em>를 강제합니다. <em>정확성</em>은 ruler 에이전트의 책임입니다.
+</div>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="9">설계 결정 요약</h2>
+
+<table>
+  <thead><tr><th>결정 항목</th><th>선택</th><th>근거</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>강제 메커니즘</td>
+      <td>PreToolUse 훅 deny</td>
+      <td>물리적 게이트. LLM 지시로 우회 불가</td>
+    </tr>
+    <tr>
+      <td>상태 저장</td>
+      <td>.wh-state.json + 명시적 플래그</td>
+      <td>wh-init의 검증된 패턴 재사용. 세션 재시작 후에도 유지</td>
+    </tr>
+    <tr>
+      <td>상태 기록 주체</td>
+      <td>각 에이전트가 write-state.js 직접 호출</td>
+      <td>완료를 가장 잘 아는 주체가 선언</td>
+    </tr>
+    <tr>
+      <td>커맨드 재실행 동작</td>
+      <td>항상 처음부터 (always-from-scratch)</td>
+      <td>부분 상태가 silently 게이트를 여는 현상 방지</td>
+    </tr>
+    <tr>
+      <td>커맨드 간 격리</td>
+      <td>current.command 체크 후 즉시 종료</td>
+      <td>각 enforce 스크립트가 자신의 커맨드에만 반응</td>
+    </tr>
+    <tr>
+      <td>훅 통합 방식</td>
+      <td>커맨드별 3개 스크립트 (enforce-init, enforce-create, enforce-modify)</td>
+      <td>커맨드당 하나의 스크립트. 소유권 명확. 로직 누수 없음</td>
+    </tr>
+    <tr>
+      <td>템플릿 게이트</td>
+      <td>enforce-create/modify에 흡수</td>
+      <td>별도 훅 등록 제거. 단계 인식 에러 메시지 가능</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ─────────────────────────────────────── -->
+<h2 data-n="10">변경 파일 목록</h2>
+
+<table>
+  <thead><tr><th>파일</th><th>유형</th><th>변경 내용</th></tr></thead>
+  <tbody>
+    <tr><td><code>hooks/scripts/enforce-create.js</code></td><td>신규</td><td>wh-create 파이프라인 + 템플릿 탐색 강제</td></tr>
+    <tr><td><code>hooks/scripts/enforce-modify.js</code></td><td>신규</td><td>wh-modify 파이프라인 + 템플릿 탐색 강제</td></tr>
+    <tr><td><code>hooks/scripts/lib/state.js</code></td><td>수정</td><td>emptyState에 current, wh-create, wh-modify 추가</td></tr>
+    <tr><td><code>hooks/hooks.json</code></td><td>수정</td><td>enforce-template.js 제거 → enforce-create/modify 추가</td></tr>
+    <tr><td><code>commands/wh-create.md</code></td><td>수정</td><td>Step 0 파이프라인 상태 초기화 추가</td></tr>
+    <tr><td><code>commands/wh-modify.md</code></td><td>수정</td><td>Step 0 동일</td></tr>
+    <tr><td><code>agents/planner.md</code></td><td>수정</td><td>Pipeline State Signal 섹션 추가 (domain + planner=done)</td></tr>
+    <tr><td><code>agents/templater.md</code></td><td>수정</td><td>Pipeline State Signal 섹션 추가 (templater=done)</td></tr>
+    <tr><td><code>agents/developer.md</code></td><td>수정</td><td>Pipeline State Signal 섹션 추가 (developer=done)</td></tr>
+    <tr><td><code>agents/ruler.md</code></td><td>수정</td><td>Deliverable을 파일 출력으로 변경 + ruler=done 신호</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  wonder-harness 설계 보고서 &nbsp;|&nbsp; 생성: 2026-06-06 &nbsp;|&nbsp;
+  담당: inho.jeong@wonderit.kr
+</footer>
+
+</body>
+</html>

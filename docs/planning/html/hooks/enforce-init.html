@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>enforce-init 훅 — 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#b45309;--accent:#6366f1;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:var(--primary);color:#fff;padding:.8rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,#b45309,#d97706);color:#fff;padding:2.5rem 2rem 2rem;}
+  .hero .chip{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.25rem .8rem;font-size:.78rem;margin-bottom:.8rem;}
+  .hero h1{font-size:1.8rem;font-weight:700;margin-bottom:.4rem;}
+  .hero p{opacity:.88;font-size:.95rem;max-width:580px;}
+  .container{max-width:860px;margin:0 auto;padding:1.8rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.4rem;margin-bottom:1.4rem;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .card h2{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:3px;height:1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  th{background:#f1f5f9;text-align:left;padding:.55rem .75rem;font-weight:600;color:var(--muted);font-size:.82rem;}
+  td{padding:.55rem .75rem;border-top:1px solid var(--border);vertical-align:top;}
+  .step-flow{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:.6rem 0;}
+  .step-box{background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:.35rem .7rem;font-size:.82rem;font-weight:600;color:#92400e;}
+  .step-arr{color:#d97706;font-weight:700;}
+  .allow{display:inline-block;background:#dcfce7;color:#166534;border-radius:5px;padding:.1rem .5rem;font-size:.78rem;font-weight:600;}
+  .deny{display:inline-block;background:#fee2e2;color:#991b1b;border-radius:5px;padding:.1rem .5rem;font-size:.78rem;font-weight:600;}
+  .improve-item{display:flex;gap:.6rem;margin:.45rem 0;font-size:.9rem;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  ul{padding-left:1.3rem;}
+  li{margin:.3rem 0;font-size:.9rem;}
+  footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="../hooks.html">Hooks</a><span>/</span>enforce-init
+</div>
+<div class="hero">
+  <div class="chip">Hook · PreToolUse(Write|Edit) · 차단</div>
+  <h1>enforce-init</h1>
+  <p>/wh-init 실행 중 ADR → 규칙 → 보고서 순서를 강제한다. 순서를 건너뛰면 쓰기를 차단한다.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <p style="font-size:.9rem;margin-bottom:.8rem;">ruler 에이전트가 순서를 지키도록 단계별 쓰기 대상 경로를 검사한다.</p>
+    <div class="step-flow">
+      <div class="step-box">① adr-extract<br><small>.claude/adr/</small></div>
+      <div class="step-arr">→</div>
+      <div class="step-box">② generate<br><small>.claude/rules/</small></div>
+      <div class="step-arr">→</div>
+      <div class="step-box">③ report<br><small>.claude/reports/</small></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <ul>
+      <li>/wh-init 세션 중 모든 Write·Edit 호출 전 트리거.</li>
+      <li><code>init-guard.js</code>로 <code>.claude/.state/state.json</code>의 진행 상태 확인.</li>
+      <li><code>.claude/adr/</code> 없이 <code>.claude/rules/</code> 쓰기 시도: <span class="deny">deny</span>.</li>
+      <li><code>.claude/rules/</code> 없이 <code>.claude/reports/</code> 쓰기 시도: <span class="deny">deny</span>.</li>
+      <li>순서 충족 시: <span class="allow">allow</span>. 타임아웃 10초.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th></th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td><strong>입력</strong></td><td>PreToolUse 이벤트 (대상 파일 경로) + 현재 상태</td></tr>
+        <tr><td><strong>출력</strong></td><td><code>{ permissionDecision: "allow" | "deny", denyMessage?: string }</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li><code>lib/init-guard.js</code> — 단계 순서 검증 로직.</li>
+      <li><code>lib/state.js</code> — 초기화 진행 상태 읽기.</li>
+      <li>ruler 에이전트가 각 단계 완료 후 상태를 업데이트해야 한다.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span><code>--reset</code> 플래그로 init 상태 초기화 후 1단계부터 깔끔하게 재실행.</span></div>
+    <div class="improve-item"><span>ADR·규칙이 이미 있을 때 3단계(보고서)만 재실행하는 부분 재실행 지원.</span></div>
+    <div class="improve-item"><span>거부 메시지에 시도된 단계와 기대 단계를 명시해 디버깅 용이하게.</span></div>
+    <div class="improve-item"><span>모든 엣지 케이스(순서 이탈, 파일 없음, 부분 상태)에 대한 단위 테스트 보강.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — enforce-init 훅</footer>
+</body>
+</html>

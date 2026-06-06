@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mark-template-read 훅 — 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#7c3aed;--accent:#f59e0b;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:var(--primary);color:#fff;padding:.8rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;padding:2.5rem 2rem 2rem;}
+  .hero .chip{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.25rem .8rem;font-size:.78rem;margin-bottom:.8rem;}
+  .hero h1{font-size:1.8rem;font-weight:700;margin-bottom:.4rem;}
+  .hero p{opacity:.88;font-size:.95rem;max-width:580px;}
+  .container{max-width:860px;margin:0 auto;padding:1.8rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.4rem;margin-bottom:1.4rem;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .card h2{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:3px;height:1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  th{background:#f1f5f9;text-align:left;padding:.55rem .75rem;font-weight:600;color:var(--muted);font-size:.82rem;}
+  td{padding:.55rem .75rem;border-top:1px solid var(--border);vertical-align:top;}
+  .improve-item{display:flex;gap:.6rem;margin:.45rem 0;font-size:.9rem;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  ul{padding-left:1.3rem;}
+  li{margin:.3rem 0;font-size:.9rem;}
+  footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="../hooks.html">Hooks</a><span>/</span>mark-template-read
+</div>
+<div class="hero">
+  <div class="chip">Hook · PostToolUse(Read) · 비차단</div>
+  <h1>mark-template-read</h1>
+  <p>Read 툴 호출 후 해당 파일이 템플릿인지 확인하고 세션 마커를 기록한다. enforce-template 훅의 판단 근거를 제공한다.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <p style="font-size:.9rem;">모든 Read 이후 읽은 파일이 <code>index.json</code>의 <code>pathPatterns</code>와 일치하면 <code>.claude/.state/state.json</code>에 마커를 기록한다. 비차단 — 결과에 영향 없음.</p>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <ul>
+      <li>모든 Read 툴 호출 후 트리거.</li>
+      <li>읽은 파일 경로를 <code>index.json</code> pathPatterns와 대조 (<code>index-match.js</code>).</li>
+      <li>일치하면 <code>marker.js</code>를 통해 세션 마커 기록.</li>
+      <li>비차단; 툴 호출 결과 또는 파라미터 수정 없음. 타임아웃 5초.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th></th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td><strong>입력</strong></td><td>PostToolUse 이벤트 (파일 경로 파라미터)</td></tr>
+        <tr><td><strong>출력</strong></td><td><code>.claude/.state/state.json</code>에 마커 항목 기록</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li><code>.claude/templates/index.json</code> — 패턴 매칭 기준.</li>
+      <li><code>lib/index-match.js</code> — glob 패턴 매칭 로직.</li>
+      <li><code>lib/marker.js</code> — 마커 읽기/쓰기.</li>
+      <li><code>lib/state.js</code> — 상태 파일 관리.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span>파일 열기만으로 마킹되는 현재 방식 대신 최소 읽기 깊이(예: 10행 이상) 조건 추가.</span></div>
+    <div class="improve-item"><span>"어떤 템플릿이라도 읽었음" 대신 특정 템플릿 ID 단위로 추적.</span></div>
+    <div class="improve-item"><span><code>/wh-status</code> 커맨드에서 탐색 완료·미완료 템플릿 목록 노출.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — mark-template-read 훅</footer>
+</body>
+</html>

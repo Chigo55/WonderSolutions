@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>caveman 스킬 — 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#374151;--accent:#f59e0b;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:var(--primary);color:#fff;padding:.8rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,#374151,#1f2937);color:#fff;padding:2.5rem 2rem 2rem;}
+  .hero .chip{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.25rem .8rem;font-size:.78rem;margin-bottom:.8rem;}
+  .hero h1{font-size:1.8rem;font-weight:700;margin-bottom:.4rem;}
+  .hero p{opacity:.88;font-size:.95rem;max-width:580px;}
+  .container{max-width:860px;margin:0 auto;padding:1.8rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.4rem;margin-bottom:1.4rem;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .card h2{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:3px;height:1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  th{background:#f1f5f9;text-align:left;padding:.55rem .75rem;font-weight:600;color:var(--muted);font-size:.82rem;}
+  td{padding:.55rem .75rem;border-top:1px solid var(--border);vertical-align:top;}
+  .improve-item{display:flex;gap:.6rem;margin:.45rem 0;font-size:.9rem;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  ul{padding-left:1.3rem;}
+  li{margin:.3rem 0;font-size:.9rem;}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.6rem 0;}
+  .compare-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:.8rem 1rem;}
+  .compare-box h3{font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:.4rem;}
+  .compare-box p{font-size:.85rem;}
+  footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="../skills.html">Skills</a><span>/</span>caveman
+</div>
+<div class="hero">
+  <div class="chip">Skill · 커뮤니케이션 스타일</div>
+  <h1>caveman</h1>
+  <p>불필요한 표현을 제거하고 단편 문장을 허용해 토큰을 ~75% 절감하는 커뮤니케이션 압축 스킬.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <p style="font-size:.9rem;">컨텍스트 창 보존이 중요한 긴 세션에서 유용하다. 코드 출력은 영향 없음 — 응답 텍스트만 압축된다.</p>
+    <div class="compare">
+      <div class="compare-box"><h3>일반 모드</h3><p>"저는 그 파일을 읽어서 문제를 파악해 보겠습니다. 잠시만 기다려 주세요."</p></div>
+      <div class="compare-box"><h3>caveman 모드</h3><p>파일 읽음. 문제 파악 중.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <ul>
+      <li>사과·인사·"물론이죠" 등 필러 표현 제거.</li>
+      <li>단편 문장 및 축약어 허용.</li>
+      <li>코드 블록은 완전하고 정확하게 유지.</li>
+      <li>세션 종료 또는 명시적 비활성화까지 지속.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th></th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td><strong>입력</strong></td><td>사용자 호출 (인수 없음)</td></tr>
+        <tr><td><strong>출력</strong></td><td>이후 모든 응답의 스타일 변경 (신규 파일 없음)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li>파일·상태 의존성 없음.</li>
+      <li>다른 활성 스킬과 함께 작동 가능.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span>압축 레벨 설정: <code>--light</code>(필러만), <code>--medium</code>(단편 허용), <code>--max</code>(한 단어 가능).</span></div>
+    <div class="improve-item"><span><code>/caveman off</code>로 세션 재시작 없이 비활성화.</span></div>
+    <div class="improve-item"><span>SKILL.md에 이전·이후 토큰 절감 실증 예시 추가.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — caveman 스킬</footer>
+</body>
+</html>

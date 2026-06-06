@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rules — 그룹 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#b45309;--secondary:#92400e;--accent:#0ea5e9;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:1rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:3rem 2rem 2.5rem;}
+  .hero .badge-group{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.3rem .9rem;font-size:.8rem;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:700;margin-bottom:.5rem;}
+  .hero p{opacity:.9;max-width:600px;}
+  .container{max-width:900px;margin:0 auto;padding:2rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .card h2{font-size:1.1rem;font-weight:600;color:var(--primary);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:4px;height:1.1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;}
+  th{background:#f1f5f9;text-align:left;padding:.6rem .8rem;font-weight:600;color:var(--muted);}
+  td{padding:.6rem .8rem;border-top:1px solid var(--border);}
+  tr:hover td{background:#f8fafc;}
+  .generated{display:inline-block;background:#fef3c7;color:#92400e;border-radius:6px;padding:.15rem .5rem;font-size:.75rem;font-weight:600;}
+  .ref-only{display:inline-block;background:#f1f5f9;color:#64748b;border-radius:6px;padding:.15rem .5rem;font-size:.75rem;}
+  ul{padding-left:1.4rem;}
+  li{margin:.35rem 0;font-size:.92rem;}
+  .improve-item{display:flex;gap:.7rem;margin:.5rem 0;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;margin-top:.05rem;}
+  .priority-box{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:1rem 1.2rem;font-size:.9rem;}
+  .priority-box ol{padding-left:1.4rem;}
+  .priority-box li{margin:.3rem 0;}
+  footer{text-align:center;padding:2rem;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="#">기획서</a><span>/</span>Rules 그룹
+</div>
+<div class="hero">
+  <div class="badge-group">그룹 기획서</div>
+  <h1>Rules</h1>
+  <p>대상 스택의 아키텍처 제약과 컨벤션을 정의하는 5개 메타 규칙 문서. ruler 에이전트가 이를 기반으로 프로젝트별 규칙을 생성한다.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <table>
+      <thead><tr><th>규칙</th><th>레이어</th><th>생성 산출물</th></tr></thead>
+      <tbody>
+        <tr><td><code>backend.md</code></td><td>Java / Spring Boot / MyBatis</td><td><span class="generated">생성됨</span> <code>.claude/rules/backend.md</code></td></tr>
+        <tr><td><code>frontend.md</code></td><td>Thymeleaf / Kendo / ES6</td><td><span class="generated">생성됨</span> <code>.claude/rules/frontend.md</code></td></tr>
+        <tr><td><code>security.md</code></td><td>전 레이어 공통</td><td><span class="generated">생성됨</span> <code>.claude/rules/security.md</code></td></tr>
+        <tr><td><code>workflow.md</code></td><td>프로세스 / 네이밍</td><td><span class="ref-only">참조 전용</span></td></tr>
+        <tr><td><code>templates.md</code></td><td>토큰 컨벤션 / 카탈로그</td><td><span class="ref-only">참조 전용</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <ul>
+      <li>메타 규칙은 각 에이전트가 검증할 기준 체크리스트를 제공한다.</li>
+      <li>프로젝트별 규칙(<code>.claude/rules/</code>)이 존재하면 메타 규칙보다 우선 적용된다.</li>
+      <li><code>backend.md</code>: SP 전용 데이터 접근 강제 (<code>@Insert/@Update/@Delete</code> 금지).</li>
+      <li><code>frontend.md</code>: Kendo 웹 컴포넌트 + ES6 모듈 강제 (JSP/jQuery 금지).</li>
+      <li><code>security.md</code>: 입력 검증·권한 가드·파일 업로드·세션 처리 규칙.</li>
+    </ul>
+    <div class="priority-box" style="margin-top:1rem;">
+      <strong>규칙 우선순위</strong>
+      <ol>
+        <li><code>.claude/rules/{layer}.md</code> — 프로젝트별 규칙 (최우선)</li>
+        <li><code>plugins/wonder-harness/rules/{layer}.md</code> — 메타 규칙 (폴백)</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th>규칙</th><th>사용 에이전트</th><th>출력</th></tr></thead>
+      <tbody>
+        <tr><td><code>backend.md</code></td><td>ruler (generate), developer (리뷰)</td><td><code>.claude/rules/backend.md</code></td></tr>
+        <tr><td><code>frontend.md</code></td><td>ruler (generate), developer (리뷰)</td><td><code>.claude/rules/frontend.md</code></td></tr>
+        <tr><td><code>security.md</code></td><td>ruler (generate), developer (리뷰)</td><td><code>.claude/rules/security.md</code></td></tr>
+        <tr><td><code>workflow.md</code></td><td>developer (참조)</td><td>—</td></tr>
+        <tr><td><code>templates.md</code></td><td>templater, developer (참조)</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li>규칙 생성 전에 ADR 문서(<code>.claude/adr/</code>)가 먼저 존재해야 한다.</li>
+      <li>ruler 에이전트가 규칙 생성 라이프사이클을 관리한다.</li>
+      <li>developer·ruler 에이전트 모두 파이프라인 실행 중 생성된 규칙을 읽는다.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span><code>security.md</code>에 각 항목의 OWASP Top 10 매핑 추가.</span></div>
+    <div class="improve-item"><span><code>backend.md</code>에 SP 호출 패턴 및 트랜잭션 범위 예시 보강.</span></div>
+    <div class="improve-item"><span><code>frontend.md</code>에 Kendo 위젯별 초기화·destroy 패턴 추가.</span></div>
+    <div class="improve-item"><span><code>workflow.md</code>에 네이밍 실수 트러블슈팅 섹션 추가.</span></div>
+    <div class="improve-item"><span>스택 테스트 컨벤션을 다루는 <code>testing.md</code> 메타 규칙 신규 추가.</span></div>
+    <div class="improve-item"><span>규칙 버전 관리 지원 — 프로젝트가 특정 메타 규칙 버전에 고정 가능.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — Rules 그룹</footer>
+</body>
+</html>

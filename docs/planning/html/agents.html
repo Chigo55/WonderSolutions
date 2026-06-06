@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agents — 그룹 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#059669;--secondary:#0d9488;--accent:#f59e0b;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:1rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:3rem 2rem 2.5rem;}
+  .hero .badge-group{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.3rem .9rem;font-size:.8rem;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:700;margin-bottom:.5rem;}
+  .hero p{opacity:.9;max-width:600px;}
+  .container{max-width:900px;margin:0 auto;padding:2rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .card h2{font-size:1.1rem;font-weight:600;color:var(--primary);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:4px;height:1.1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;}
+  th{background:#f1f5f9;text-align:left;padding:.6rem .8rem;font-weight:600;color:var(--muted);}
+  td{padding:.6rem .8rem;border-top:1px solid var(--border);}
+  tr:hover td{background:#f8fafc;}
+  .stage{display:inline-block;background:#dcfce7;color:#166534;border-radius:6px;padding:.15rem .6rem;font-size:.8rem;font-weight:600;}
+  ul{padding-left:1.4rem;}
+  li{margin:.35rem 0;font-size:.92rem;}
+  .improve-item{display:flex;gap:.7rem;margin:.5rem 0;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;margin-top:.05rem;}
+  .pipeline{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:1rem 0;}
+  .pipeline .box{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;border-radius:8px;padding:.5rem 1rem;font-weight:600;font-size:.9rem;}
+  .pipeline .arr{color:var(--primary);font-size:1.2rem;font-weight:700;}
+  .pipeline .num{font-size:.7rem;opacity:.8;display:block;text-align:center;}
+  footer{text-align:center;padding:2rem;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="#">기획서</a><span>/</span>Agents 그룹
+</div>
+<div class="hero">
+  <div class="badge-group">그룹 기획서</div>
+  <h1>Agents</h1>
+  <p>순차 실행되는 4단계 파이프라인 에이전트. 각 단계의 출력이 다음 단계의 입력이 된다.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <div class="pipeline">
+      <div class="box"><span class="num">1단계</span>planner</div>
+      <div class="arr">→</div>
+      <div class="box"><span class="num">2단계</span>templater</div>
+      <div class="arr">→</div>
+      <div class="box"><span class="num">3단계</span>developer</div>
+      <div class="arr">→</div>
+      <div class="box"><span class="num">4단계</span>ruler</div>
+    </div>
+    <p style="font-size:.92rem;">모든 에이전트는 <code>create</code> / <code>modify</code> / <code>review</code> 세 가지 모드를 지원한다.</p>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <ul>
+      <li>에이전트는 순차 실행된다 — 파이프라인 내 병렬 실행 없음.</li>
+      <li>각 에이전트는 이전 단계 산출물(계획·템플릿·코드)을 컨텍스트로 읽는다.</li>
+      <li>ruler는 항상 최종 단계이며 검증 보고서를 생성한다.</li>
+      <li>커맨드에서 전달된 모드에 따라 각 에이전트가 동작을 달리한다.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th>에이전트</th><th>입력</th><th>출력</th></tr></thead>
+      <tbody>
+        <tr><td><span class="stage">planner</span></td><td>요청 문서</td><td>모듈 계획 (7파일 분해·의존성·순서)</td></tr>
+        <tr><td><span class="stage">templater</span></td><td>모듈 계획</td><td>갱신된 <code>index.json</code>, 템플릿 탐색 지시</td></tr>
+        <tr><td><span class="stage">developer</span></td><td>계획 + 템플릿 + 규칙</td><td>구현된 Java/HTML/JS 파일</td></tr>
+        <tr><td><span class="stage">ruler</span></td><td>전체 산출물</td><td>검증 보고서, ADR, 프로젝트 규칙</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li>모든 에이전트가 <code>.claude/templates/index.json</code>을 읽는다 (developer는 훅으로 강제).</li>
+      <li>프로젝트 규칙(<code>.claude/rules/</code>)이 존재하면 메타 규칙보다 우선 적용된다.</li>
+      <li>developer는 <code>enforce-template</code> 훅에 의해 템플릿 탐색 없이 코드 작성이 차단된다.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span>developer 단계 내 독립 하위 작업의 병렬 실행 지원.</span></div>
+    <div class="improve-item"><span>planner가 유사한 기존 모듈을 감지하고 재사용을 권장하는 기능 추가.</span></div>
+    <div class="improve-item"><span>templater가 기존 코드베이스에서 템플릿 후보를 자동 탐지하는 기능 추가.</span></div>
+    <div class="improve-item"><span>ruler의 발견 사항을 심각도별(CRITICAL/HIGH/MEDIUM)로 분류하고 LOW는 자동 수정.</span></div>
+    <div class="improve-item"><span>단계 간 산출물 전달 검증 — 상위 단계 출력이 비정상일 경우 다음 단계에서 거부.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — Agents 그룹</footer>
+</body>
+</html>

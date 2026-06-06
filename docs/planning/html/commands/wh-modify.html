@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/wh-modify — 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#0369a1;--accent:#f59e0b;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:var(--primary);color:#fff;padding:.8rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,#0369a1,#0284c7);color:#fff;padding:2.5rem 2rem 2rem;}
+  .hero .chip{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.25rem .8rem;font-size:.78rem;margin-bottom:.8rem;}
+  .hero h1{font-size:1.8rem;font-weight:700;margin-bottom:.4rem;}
+  .hero p{opacity:.88;font-size:.95rem;max-width:580px;}
+  .container{max-width:860px;margin:0 auto;padding:1.8rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.4rem;margin-bottom:1.4rem;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .card h2{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:3px;height:1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  th{background:#f1f5f9;text-align:left;padding:.55rem .75rem;font-weight:600;color:var(--muted);font-size:.82rem;}
+  td{padding:.55rem .75rem;border-top:1px solid var(--border);vertical-align:top;}
+  .section-chip{display:inline-block;background:#dbeafe;color:#1e40af;border-radius:5px;padding:.1rem .5rem;font-size:.78rem;font-family:monospace;margin:.1rem;}
+  .step{display:flex;gap:.8rem;margin:.5rem 0;align-items:flex-start;font-size:.9rem;}
+  .step-num{background:var(--primary);color:#fff;border-radius:50%;width:1.4rem;height:1.4rem;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:.15rem;}
+  .improve-item{display:flex;gap:.6rem;margin:.45rem 0;font-size:.9rem;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  ul{padding-left:1.3rem;}
+  li{margin:.3rem 0;font-size:.9rem;}
+  footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="../commands.html">Commands</a><span>/</span>/wh-modify
+</div>
+<div class="hero">
+  <div class="chip">Command · modify 모드</div>
+  <h1>/wh-modify</h1>
+  <p>기존 도메인 기능을 변경하는 진입 커맨드. 변경 대상을 명확히 지정하고 파이프라인을 modify 모드로 실행한다.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <p style="font-size:.9rem;"><code>modify_request.md</code>를 검증하고 <strong>planner → templater → developer → ruler</strong> 파이프라인을 <code>modify</code> 모드로 실행한다. 모든 에이전트는 변경 대상 파일로 범위를 제한한다.</p>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <div class="step"><div class="step-num">1</div><span><code>modify_request.md</code> 읽기.</span></div>
+    <div class="step"><div class="step-num">2</div><span>필수 섹션 검증 — 누락 시 즉시 실패.</span></div>
+    <div class="step"><div class="step-num">3</div><span>planner가 변경 대상 파일 식별 (7파일 중 일부).</span></div>
+    <div class="step"><div class="step-num">4</div><span>templater가 변경 관련 템플릿 확인·등록.</span></div>
+    <div class="step"><div class="step-num">5</div><span>developer가 대상 파일만 수정.</span></div>
+    <div class="step"><div class="step-num">6</div><span>ruler가 수정된 파일 범위 검증.</span></div>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th></th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td><strong>입력</strong></td><td><code>.claude/requests/modify_request.md</code> (필수 4섹션 포함)</td></tr>
+        <tr><td><strong>출력</strong></td><td>수정된 파일 + ruler 검증 보고서 (변경 범위 한정)</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:.8rem;font-size:.87rem;color:var(--muted);">필수 요청 섹션:</p>
+    <div style="margin-top:.4rem;">
+      <span class="section-chip">## Target</span>
+      <span class="section-chip">## Changes</span>
+      <span class="section-chip">## Impact</span>
+      <span class="section-chip">## Acceptance Criteria</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li>변경 대상 도메인이 이미 존재해야 한다 (planner가 읽을 수 있어야 함).</li>
+      <li>수정 시에도 <code>enforce-template.js</code> 훅이 적용된다.</li>
+      <li>기존 <code>.claude/rules/{layer}.md</code>가 개발자의 변경 범위를 제한한다.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span>developer 작성 전 계획된 변경 사항의 diff 미리보기 제공.</span></div>
+    <div class="improve-item"><span><code>## Impact</code> 섹션을 호출자 grep 스캔으로 자동 채우는 기능 추가.</span></div>
+    <div class="improve-item"><span>단일 요청에서 다중 도메인 변경 지원 (현재 단일 도메인 가정).</span></div>
+    <div class="improve-item"><span>ruler 검증 후 수정된 파일을 에디터에서 자동으로 열기.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — /wh-modify</footer>
+</body>
+</html>

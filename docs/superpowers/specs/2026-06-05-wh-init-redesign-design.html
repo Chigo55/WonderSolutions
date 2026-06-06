@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>wh-init 재설계 — 디자인 명세서</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#232736;--border:#2e3347;--text:#e4e6f0;--text-dim:#8b90a5;--accent:#6c8aff;--accent2:#a78bfa;--accent3:#34d399;--warn:#fbbf24;--danger:#f87171;--radius:12px;--code-bg:#161922}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;padding:0}
+.container{max-width:960px;margin:0 auto;padding:40px 24px 80px}
+h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:40px;font-size:.85rem;color:var(--text-dim)}
+.meta span{background:var(--surface);padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
+h2{font-size:1.35rem;font-weight:600;color:var(--accent);margin:48px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+h3{font-size:1.1rem;font-weight:600;color:var(--accent2);margin:28px 0 12px}
+p,li{font-size:.95rem;color:var(--text);margin-bottom:8px}
+ul,ol{padding-left:24px;margin-bottom:16px}
+li{margin-bottom:6px}
+strong{color:#fff;font-weight:600}
+code{font-family:'JetBrains Mono',monospace;font-size:.82rem;background:var(--code-bg);color:var(--accent3);padding:2px 7px;border-radius:4px}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;overflow-x:auto;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;color:#c9d1d9}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.9rem}
+th{background:var(--surface2);color:var(--accent);font-weight:600;text-align:left;padding:12px 16px;border:1px solid var(--border)}
+td{padding:12px 16px;border:1px solid var(--border);vertical-align:top}
+tr:nth-child(even) td{background:var(--surface)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:16px 0}
+.note{border-left:3px solid var(--accent);padding:12px 16px;background:rgba(108,138,255,.08);border-radius:0 8px 8px 0;margin:16px 0;font-size:.9rem}
+.warn{border-left:3px solid var(--warn);background:rgba(251,191,36,.08)}
+.flow-step{display:flex;align-items:flex-start;gap:16px;margin:12px 0}
+.step-num{min-width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;color:#fff;flex-shrink:0}
+.step-body{flex:1}
+.step-body h4{font-size:.95rem;font-weight:600;color:#fff;margin-bottom:4px}
+.step-body p{font-size:.88rem;color:var(--text-dim);margin:0}
+.tag{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:4px;font-weight:500;margin-left:6px}
+.tag-new{background:rgba(52,211,153,.15);color:var(--accent3)}
+.tag-enhanced{background:rgba(167,139,250,.15);color:var(--accent2)}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>wh-init 재설계 — 디자인 명세서</h1>
+<div class="meta">
+  <span>📅 2026-06-05</span>
+  <span>✅ 구현 승인됨</span>
+  <span>📦 wonder-harness 플러그인</span>
+</div>
+
+<h2>1. 문제 정의</h2>
+<p>현재 <code>/wh-init</code>은 메타룰 탐색 가이드를 활용하여 소스 코드를 탐색하고, 프로젝트별 규칙을 생성합니다. 동작은 하지만 두 가지 핵심 문제가 있습니다:</p>
+<ol>
+  <li><strong>"왜(Why)" 컨텍스트 부재.</strong> ruler는 어떤 컨벤션이 존재하는지는 파악하지만, 그 뒤에 있는 아키텍처 결정의 이유는 알지 못합니다. ADR 컨텍스트 없이 생성된 규칙은 기존 설계 제약과 충돌하거나, 우연히 생긴 패턴을 규칙으로 굳힐 수 있습니다.</li>
+  <li><strong>강제 실행 메커니즘 부재.</strong> init은 권고사항일 뿐입니다. 개발자가 초기화하지 않은 프로젝트에서 <code>/wh-create</code>를 실행하는 것을 막을 방법이 없어, 규칙을 인식하지 못하는 결과물이 생성됩니다.</li>
+</ol>
+
+<h2>2. 목표</h2>
+<ul>
+  <li>관찰 가능한 컨벤션과 추론된 아키텍처 의도를 모두 반영하도록, ADR 역공학을 규칙 생성의 <strong>필수 선행 단계</strong>로 추가</li>
+  <li>훅(Hook) 강제를 통해 init 완료를 <code>/wh-create</code> 및 <code>/wh-modify</code>의 <strong>하드 게이트</strong>로 설정</li>
+  <li><code>/wh-init</code> 내부에서도 단계 순서를 훅 수준에서 강제 (커맨드 수준이 아닌)</li>
+  <li>레이어별로 타임스탬프 버전이 지정된 <strong>사람이 읽을 수 있는 HTML 보고서</strong> 생성</li>
+</ul>
+
+<h2>3. 결정 사항</h2>
+<table>
+  <thead><tr><th>주제</th><th>결정</th></tr></thead>
+  <tbody>
+    <tr><td>훅 강제 범위</td><td><strong>C</strong> — 내부 단계 순서 강제 + 교차 명령 게이트</td></tr>
+    <tr><td>ADR 저장</td><td><strong>C</strong> — <code>.claude/adr/</code>에 영구 저장, 향후 규칙 업데이트에 재사용</td></tr>
+    <tr><td>HTML 보고서 버전 관리</td><td><strong>B+C</strong> — 레이어별 타임스탬프 버전 관리</td></tr>
+    <tr><td>상태 추적 방식</td><td><strong>B</strong> — <code>.claude/.wh-state.json</code>을 단일 진실 원천으로 사용</td></tr>
+  </tbody>
+</table>
+
+<h2>4. 새로운 Init 흐름</h2>
+<div class="card">
+<pre>/wh-init [--backend] [--frontend] [--security] [--templates]
+         (플래그 없음 = 4개 레이어 전체)</pre>
+
+<div class="flow-step">
+  <div class="step-num">0</div>
+  <div class="step-body">
+    <h4>요청 시드 복사 <span class="tag tag-new">기존</span></h4>
+    <p><code>init-requests.js</code>가 <code>create_request.md</code> + <code>modify_request.md</code>를 <code>.claude/requests/</code>로 복사 (이미 존재하면 건너뜀). 레이어 루프 이전에 <strong>한 번만</strong> 실행됩니다.<br>→ 상태 기록: <code>requests_copied = true</code></p>
+  </div>
+</div>
+
+<p style="color:var(--text-dim);margin:12px 0 4px;font-size:.88rem">▼ 선택된 각 레이어에 대해 순차적으로 반복:</p>
+
+<div class="flow-step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>ADR 역공학 <span class="tag tag-new">신규</span></h4>
+    <p>ruler (adr-extract 모드)가 프로젝트 소스를 탐색합니다.<br>→ <code>.claude/adr/{layer}.md</code> 작성<br>→ 상태 기록: <code>adr.{layer} = ISO-timestamp</code></p>
+  </div>
+</div>
+
+<div class="flow-step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>규칙 생성 <span class="tag tag-enhanced">개선</span></h4>
+    <p>ruler (generate 모드)가 메타룰 + <code>.claude/adr/{layer}.md</code>를 읽습니다.<br>→ <code>.claude/rules/{layer}.md</code> 작성<br>→ 상태 기록: <code>rules.{layer} = ISO-timestamp</code></p>
+  </div>
+</div>
+
+<div class="flow-step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>HTML 보고서 <span class="tag tag-new">신규</span></h4>
+    <p>ruler가 HTML 요약을 생성합니다.<br>→ <code>.claude/reports/wh-init-{layer}-YYYYMMDD-HHMMSS.html</code> 작성<br>→ 상태 기록: <code>reports.{layer} = filename</code></p>
+  </div>
+</div>
+</div>
+
+<div class="note">단계는 반드시 순서대로 실행되어야 합니다. 훅이 해당 레이어의 Step 1이 상태에 기록되지 않으면 Step 2를 차단하고, Step 2가 기록되지 않으면 Step 3을 차단합니다.</div>
+
+<h2>5. 상태 파일 스키마</h2>
+<p>경로: <code>.claude/.wh-state.json</code></p>
+<pre>{
+  "version": 1,
+  "requests_copied": true,
+  "adr": {
+    "backend":   "2026-06-05T10:00:00Z",
+    "frontend":  null,
+    "security":  null,
+    "templates": null
+  },
+  "rules": {
+    "backend":   "2026-06-05T10:05:00Z",
+    "frontend":  null,
+    "security":  null,
+    "templates": null
+  },
+  "reports": {
+    "backend":   "wh-init-backend-20260605-100500.html",
+    "frontend":  null,
+    "security":  null,
+    "templates": null
+  }
+}</pre>
+
+<h3>불변 조건</h3>
+<ul>
+  <li><code>rules.{layer}</code>는 <code>adr.{layer}</code>가 설정되기 전에 설정될 수 없습니다.</li>
+  <li><code>reports.{layer}</code>는 <code>rules.{layer}</code>가 설정되기 전에 설정될 수 없습니다.</li>
+  <li>상태 파일이 훅의 단일 진실 원천입니다. 아티팩트 존재 여부(<code>.claude/adr/*.md</code>, <code>.claude/rules/*.md</code>)는 상태 파일이 없거나 손상되었을 때 보조 가드로 확인됩니다.</li>
+</ul>
+
+<h2>6. 훅 강제 설계</h2>
+
+<h3>6a. 교차 명령 게이트 — init 전에 wh-create / wh-modify 차단</h3>
+<p><strong>훅:</strong> <code>PreToolUse</code> on <code>Write|Edit</code><br>
+<strong>스크립트:</strong> <code>hooks/scripts/enforce-init.js</code></p>
+<div class="card">
+<pre>if file_path가 .claude/ 하위도 아니고 플러그인 루트 하위도 아니면:
+  .claude/.wh-state.json 읽기
+  if 상태 파일이 완전히 없으면:
+    거부: "wonder-harness가 초기화되지 않았습니다. /wh-init을 먼저 실행하세요."
+  if state.rules에 null이 아닌 레이어가 하나도 없으면:
+    거부: "완전히 초기화된 레이어가 없습니다. /wh-init [--layer]를 먼저 실행하세요."
+  → 허용 (부분 초기화는 허용됨)</pre>
+</div>
+<div class="note">
+<strong>부분 초기화 정책:</strong> <code>--backend</code>만 실행된 경우에도 게이트는 통과됩니다. ruler의 validate 단계(wh-create / wh-modify 파이프라인 끝)가 이미 레이어별로 누락된 규칙 파일을 플래그하고 <code>wh-init --{layer}</code> 실행을 권장합니다. 교차 명령 게이트의 역할은 완전히 초기화되지 않은 사용을 방지하는 것이지, 4개 레이어 전체 완성을 강제하는 것이 아닙니다.
+</div>
+
+<h3>6b. Init 내부 단계 순서 강제 — 순서 외 쓰기 차단</h3>
+<p><strong>동일 훅</strong>, <code>enforce-init.js</code>, 추가 로직:</p>
+<div class="card">
+<pre>if file_path가 .claude/rules/{layer}.md와 일치하면:
+  if state.adr.{layer}가 null이면:
+    거부: "{layer}의 ADR이 먼저 완료되어야 합니다.
+           Step 1 (adr-extract)을 먼저 완료하세요."
+
+if file_path가 .claude/reports/wh-init-{layer}-*.html과 일치하면:
+  if state.rules.{layer}가 null이면:
+    거부: "{layer}의 규칙이 먼저 생성되어야 합니다.
+           Step 2 (generate)를 먼저 완료하세요."</pre>
+</div>
+
+<h3>6c. 상태 기록 유틸리티</h3>
+<p><strong>스크립트:</strong> <code>hooks/scripts/write-state.js</code></p>
+<p><code>init-requests.js</code>가 사용하며 각 ruler 단계가 완료된 후 커맨드가 호출하는 공유 모듈입니다. 상태 파일의 원자적 읽기-수정-쓰기를 처리합니다.</p>
+
+<h2>7. ruler 에이전트 변경 사항</h2>
+
+<h3>새로운 서브 모드: <code>adr-extract</code></h3>
+<p>각 레이어의 Step 1로 <code>wh-init</code>이 호출합니다.</p>
+<p><strong>입력:</strong></p>
+<ul>
+  <li>레이어 이름 (<code>backend</code> / <code>frontend</code> / <code>security</code> / <code>templates</code>)</li>
+  <li>프로젝트 소스 파일 (Glob + Grep 탐색 활용)</li>
+</ul>
+<p><strong>처리 과정:</strong></p>
+<ol>
+  <li>generate 모드와 동일한 탐색 가이드를 사용하여 해당 레이어의 프로젝트 코드를 탐색</li>
+  <li>발견된 각 주요 패턴에 대해 다음을 추론:
+    <ul>
+      <li><strong>컨텍스트</strong> — 이 패턴이 해결하는 문제</li>
+      <li><strong>결정</strong> — 어떤 아키텍처 선택이 이루어졌는지</li>
+      <li><strong>근거</strong> — 왜 이 선택인지 (코드 구조, 네이밍, 주석에서 추론)</li>
+      <li><strong>결과</strong> — 이 결정이 향후 코드에 부과하는 제약</li>
+    </ul>
+  </li>
+  <li>추론 결과를 3~7개의 ADR 항목으로 그룹화. 노이즈(예: 파일 하나에만 나타나는 패턴)는 제거</li>
+  <li>사용자에게 요약을 제시하여 수정 확인</li>
+  <li><code>.claude/adr/{layer}.md</code> 작성</li>
+</ol>
+
+<p><strong>ADR 문서 형식:</strong></p>
+<pre># ADR: {Layer} — {프로젝트 이름}
+생성일: {ISO 날짜}
+
+## ADR-{N}: {짧은 제목}
+**컨텍스트:** ...
+**결정:** ...
+**근거:** ...
+**결과:** ...</pre>
+
+<h3>개선된 <code>generate</code> 모드</h3>
+<p>Step 2에서 이제 규칙 초안 작성 전에 <code>.claude/adr/{layer}.md</code>를 읽습니다.</p>
+<p><strong>현재 대비 추가 입력:</strong></p>
+<ul><li><code>.claude/adr/{layer}.md</code> — 이 레이어의 ADR (필수; 없으면 중단)</li></ul>
+<p><strong>프로세스 변경:</strong></p>
+<ul>
+  <li>메타룰 로드(Step 1) 후 ADR을 로드</li>
+  <li>초안 작성(Step 3) 중 각 규칙 제약을 ADR 결과와 교차 참조. 충돌 플래그</li>
+  <li>사용자 확인(Step 4)에서 ADR-규칙 충돌을 표면화하여 해결</li>
+</ul>
+
+<h2>8. HTML 보고서 구조</h2>
+<p><strong>경로:</strong> <code>.claude/reports/wh-init-{layer}-YYYYMMDD-HHMMSS.html</code></p>
+<p>섹션 (순서대로):</p>
+<ol>
+  <li><strong>헤더</strong> — 레이어 이름, 프로젝트 이름, 생성 타임스탬프</li>
+  <li><strong>ADR 요약</strong> — 추출된 모든 ADR의 컨텍스트/결정/근거 컬럼 테이블</li>
+  <li><strong>규칙 스냅샷</strong> — 생성된 <code>.claude/rules/{layer}.md</code>를 포맷된 HTML로 렌더링</li>
+  <li><strong>ADR ↔ 규칙 매핑</strong> — 어떤 ADR 항목이 어떤 규칙 섹션에 영향을 미쳤는지</li>
+  <li><strong>충돌 사항</strong> — 메타룰 기본값과 충돌한 ADR 결과 및 해결 방법</li>
+  <li><strong>푸터</strong> — wonder-harness 버전, 플러그인 루트 경로</li>
+</ol>
+<div class="note">보고서는 자체 포함 HTML(인라인 CSS, 외부 리소스 없음)로, 파일 시스템에서 직접 열 수 있습니다.</div>
+
+<h2>9. 변경 파일</h2>
+<table>
+  <thead><tr><th>파일</th><th>변경 내용</th></tr></thead>
+  <tbody>
+    <tr><td><code>commands/wh-init.md</code></td><td>전면 재작성 — 4단계 흐름, 상태 기록 호출, HTML 보고서 단계</td></tr>
+    <tr><td><code>agents/ruler.md</code></td><td><code>adr-extract</code> 서브 모드 추가; <code>generate</code> 모드가 ADR을 소비하도록 개선</td></tr>
+    <tr><td><code>hooks/hooks.json</code></td><td><code>PreToolUse Write|Edit</code>에 <code>enforce-init.js</code> 추가</td></tr>
+    <tr><td><code>hooks/scripts/enforce-init.js</code></td><td>신규 — 교차 명령 게이트 + init 내부 단계 순서 강제</td></tr>
+    <tr><td><code>hooks/scripts/write-state.js</code></td><td>신규 — 원자적 상태 읽기-수정-쓰기 유틸리티</td></tr>
+    <tr><td><code>hooks/scripts/init-requests.js</code></td><td>상태 기록 추가: <code>requests_copied = true</code></td></tr>
+  </tbody>
+</table>
+
+<h2>10. 범위 외</h2>
+<ul>
+  <li>ADR 수동 작성 (사용자가 <code>.claude/adr/*.md</code>를 직접 편집)</li>
+  <li>필수 레이어 구성 (<code>.claude/.wh-config.json</code>) — 향후 작업</li>
+  <li>규칙 재실행 없이 ADR 단계만 다시 실행</li>
+  <li>HTML 보고서 아카이빙을 위한 CI/CD 통합</li>
+</ul>
+
+<hr>
+<p style="text-align:center;color:var(--text-dim);font-size:.8rem;margin-top:40px">wonder-harness · wh-init 재설계 디자인 명세서 · 2026-06-05</p>
+
+</div>
+</body>
+</html>

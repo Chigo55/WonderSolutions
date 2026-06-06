@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>backend 규칙 — 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#b45309;--accent:#6366f1;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:var(--primary);color:#fff;padding:.8rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,#b45309,#d97706);color:#fff;padding:2.5rem 2rem 2rem;}
+  .hero .chip{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.25rem .8rem;font-size:.78rem;margin-bottom:.8rem;}
+  .hero h1{font-size:1.8rem;font-weight:700;margin-bottom:.4rem;}
+  .hero p{opacity:.88;font-size:.95rem;max-width:580px;}
+  .container{max-width:860px;margin:0 auto;padding:1.8rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.4rem;margin-bottom:1.4rem;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .card h2{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:3px;height:1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  th{background:#f1f5f9;text-align:left;padding:.55rem .75rem;font-weight:600;color:var(--muted);font-size:.82rem;}
+  td{padding:.55rem .75rem;border-top:1px solid var(--border);vertical-align:top;}
+  .section-tag{display:inline-block;background:#fef3c7;color:#92400e;border-radius:4px;padding:.1rem .4rem;font-size:.77rem;font-weight:600;}
+  .improve-item{display:flex;gap:.6rem;margin:.45rem 0;font-size:.9rem;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  ul{padding-left:1.3rem;}
+  li{margin:.3rem 0;font-size:.9rem;}
+  code{background:#f1f5f9;padding:.05rem .3rem;border-radius:3px;font-size:.85em;}
+  footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="../rules.html">Rules</a><span>/</span>backend
+</div>
+<div class="hero">
+  <div class="chip">메타 규칙 · Java / Spring Boot / MyBatis</div>
+  <h1>backend.md</h1>
+  <p>Java·Spring Boot·MyBatis 레이어의 아키텍처 제약과 컨벤션을 정의한다. ruler가 이를 기반으로 프로젝트별 규칙을 생성한다.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <p style="font-size:.9rem;">ruler <code>generate</code> 모드가 ADR + 이 메타 규칙을 조합해 <code>.claude/rules/backend.md</code>를 생성한다. 프로젝트별 규칙이 있으면 메타 규칙보다 우선 적용된다.</p>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <p style="font-size:.87rem;color:var(--muted);margin-bottom:.6rem;">포함 섹션:</p>
+    <ul>
+      <li><span class="section-tag">레이어 구조</span> Controller → Service → Mapper 단방향 의존성</li>
+      <li><span class="section-tag">네이밍</span> PascalCase 클래스, camelCase 메서드, 2자 모듈 접두사</li>
+      <li><span class="section-tag">데이터 접근</span> SP 전용 (<code>@Select</code> + <code>CALL sp_*</code>), <code>@Insert/@Update/@Delete</code> 금지</li>
+      <li><span class="section-tag">DTO/Form</span> 입력(Form)·출력(DTO) 분리; 엔티티 직접 노출 금지</li>
+      <li><span class="section-tag">서비스 조회</span> <code>@Transactional(readOnly=true)</code></li>
+      <li><span class="section-tag">서비스 CUD</span> <code>@Transactional</code> 필수</li>
+      <li><span class="section-tag">컨트롤러</span> API는 <code>@RestController</code>, 뷰는 <code>@Controller</code>; <code>@PreAuthorize</code> 전 엔드포인트</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th></th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td><strong>입력</strong></td><td><code>.claude/adr/backend.md</code> + 이 메타 규칙</td></tr>
+        <tr><td><strong>출력</strong></td><td><code>.claude/rules/backend.md</code> (프로젝트별 규칙)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li>ruler <code>generate</code> 모드가 실행 에이전트.</li>
+      <li><code>.claude/adr/backend.md</code>가 먼저 있어야 한다.</li>
+      <li>프로젝트별 규칙이 이 메타 규칙보다 우선.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span>SP 호출 패턴 및 파라미터 바인딩 예시 보강.</span></div>
+    <div class="improve-item"><span>전역 <code>@ControllerAdvice</code> vs 메서드별 <code>try/catch</code> 에러 처리 패턴 추가.</span></div>
+    <div class="improve-item"><span>페이지네이션 컨벤션 (page/size 파라미터, PageRequest 사용법) 추가.</span></div>
+    <div class="improve-item"><span>API 엔드포인트의 표준 응답 envelope 포맷 정의.</span></div>
+    <div class="improve-item"><span>레이어별 테스트 컨벤션 (단위 vs 통합) 추가.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — backend 규칙</footer>
+</body>
+</html>

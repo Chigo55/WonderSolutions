@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>templates 규칙 — 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#7c3aed;--accent:#f59e0b;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:var(--primary);color:#fff;padding:.8rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;padding:2.5rem 2rem 2rem;}
+  .hero .chip{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.25rem .8rem;font-size:.78rem;margin-bottom:.8rem;}
+  .hero h1{font-size:1.8rem;font-weight:700;margin-bottom:.4rem;}
+  .hero p{opacity:.88;font-size:.95rem;max-width:580px;}
+  .container{max-width:860px;margin:0 auto;padding:1.8rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.4rem;margin-bottom:1.4rem;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .card h2{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:3px;height:1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  th{background:#f1f5f9;text-align:left;padding:.55rem .75rem;font-weight:600;color:var(--muted);font-size:.82rem;}
+  td{padding:.55rem .75rem;border-top:1px solid var(--border);vertical-align:top;}
+  .token{display:inline-block;background:#f3e8ff;color:#6b21a8;border-radius:4px;padding:.1rem .4rem;font-size:.82rem;font-family:monospace;margin:.1rem;}
+  .token-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  .token-table td{padding:.4rem .6rem;border:1px solid #e9d5ff;}
+  .token-table tr:nth-child(even){background:#faf5ff;}
+  .improve-item{display:flex;gap:.6rem;margin:.45rem 0;font-size:.9rem;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  ul{padding-left:1.3rem;}
+  li{margin:.3rem 0;font-size:.9rem;}
+  footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="../rules.html">Rules</a><span>/</span>templates
+</div>
+<div class="hero">
+  <div class="chip">메타 규칙 · 토큰 컨벤션 / 카탈로그 (참조 전용)</div>
+  <h1>templates.md</h1>
+  <p>템플릿 파일의 토큰 컨벤션과 index.json 카탈로그 스키마를 정의하는 권위 있는 참조 규칙.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <p style="font-size:.9rem;">templater와 developer가 직접 읽는다. 생성 산출물 없음 (참조 전용). 토큰 컨벤션의 권위 있는 출처.</p>
+    <div style="margin-top:.8rem;">
+      <span class="token">{module}</span>
+      <span class="token">{domainName}</span>
+      <span class="token">Xxx</span>
+      <span class="token">xxx</span>
+      <span class="token">{gridId}</span>
+      <span class="token">{Entity}</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <table class="token-table">
+      <thead><tr><th>토큰</th><th>의미</th><th>예시</th></tr></thead>
+      <tbody>
+        <tr><td><span class="token">{module}</span></td><td>2자 소문자 모듈 코드</td><td>wo, eq, inv</td></tr>
+        <tr><td><span class="token">{domainName}</span></td><td>camelCase 도메인명</td><td>woWorkShift</td></tr>
+        <tr><td><span class="token">Xxx</span></td><td>PascalCase 클래스 플레이스홀더</td><td>WoWorkShift</td></tr>
+        <tr><td><span class="token">xxx</span></td><td>camelCase 변수 플레이스홀더</td><td>woWorkShift</td></tr>
+        <tr><td><span class="token">{gridId}</span></td><td>HTML 그리드 요소 ID</td><td>woWorkShiftGrid</td></tr>
+        <tr><td><span class="token">{Entity}</span></td><td>엔티티 PascalCase명</td><td>WorkShift</td></tr>
+      </tbody>
+    </table>
+    <ul style="margin-top:.8rem;">
+      <li>모든 템플릿에 토큰과 기대값을 나열하는 치환 테이블 주석 포함 필수.</li>
+      <li>섹션 구분자 주석 컨벤션 표준화 (헤더·본문·풋터).</li>
+      <li><code>index.json</code> 항목 구조: id, pathPatterns, description, path, metadata.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th></th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td><strong>입력</strong></td><td>templater·developer 에이전트가 직접 읽음</td></tr>
+        <tr><td><strong>출력</strong></td><td>— (참조 전용)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li>templater가 토큰 컨벤션의 주요 소비자.</li>
+      <li>developer가 치환 시 이 컨벤션을 따른다.</li>
+      <li><code>index.schema.json</code> (JSON Schema draft-07)이 카탈로그 구조를 런타임 강제.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span>템플릿 버전 관리: <code>index.json</code> 항목에 <code>"version"</code> 필드 추가 — 오래된 템플릿 플래그 가능.</span></div>
+    <div class="improve-item"><span>쓰기 전 미치환 <code>{token}</code> 플레이스홀더 스캔 표준 단계 정의.</span></div>
+    <div class="improve-item"><span>레이어별 토큰 적용 범위 표 추가 (어떤 파일 유형에 어떤 토큰).</span></div>
+    <div class="improve-item"><span>선택적 섹션 처리 가이드 (조건부 토큰 치환) 추가.</span></div>
+    <div class="improve-item"><span>플러그인 버전 간 토큰명 변경 시 마이그레이션 가이드 추가.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — templates 규칙</footer>
+</body>
+</html>

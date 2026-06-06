@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/wh-review — 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#0f766e;--accent:#8b5cf6;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:var(--primary);color:#fff;padding:.8rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,#0f766e,#0d9488);color:#fff;padding:2.5rem 2rem 2rem;}
+  .hero .chip{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.25rem .8rem;font-size:.78rem;margin-bottom:.8rem;}
+  .hero h1{font-size:1.8rem;font-weight:700;margin-bottom:.4rem;}
+  .hero p{opacity:.88;font-size:.95rem;max-width:580px;}
+  .container{max-width:860px;margin:0 auto;padding:1.8rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.4rem;margin-bottom:1.4rem;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .card h2{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:3px;height:1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  th{background:#f1f5f9;text-align:left;padding:.55rem .75rem;font-weight:600;color:var(--muted);font-size:.82rem;}
+  td{padding:.55rem .75rem;border-top:1px solid var(--border);vertical-align:top;}
+  .agent-chip{display:inline-block;background:#ccfbf1;color:#065f46;border-radius:5px;padding:.1rem .5rem;font-size:.78rem;font-family:monospace;}
+  .step{display:flex;gap:.8rem;margin:.5rem 0;align-items:flex-start;font-size:.9rem;}
+  .step-num{background:var(--primary);color:#fff;border-radius:50%;width:1.4rem;height:1.4rem;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:.15rem;}
+  .improve-item{display:flex;gap:.6rem;margin:.45rem 0;font-size:.9rem;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  ul{padding-left:1.3rem;}
+  li{margin:.3rem 0;font-size:.9rem;}
+  footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="../commands.html">Commands</a><span>/</span>/wh-review
+</div>
+<div class="hero">
+  <div class="chip">Command · review 모드</div>
+  <h1>/wh-review</h1>
+  <p>create/modify 파이프라인 없이 기존 코드·템플릿·규칙을 단독으로 리뷰하는 커맨드.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <p style="font-size:.9rem;">리뷰 대상에 따라 적합한 에이전트를 선택해 실행한다. 파일은 작성하지 않으며 사용자가 명시적으로 수정을 요청할 때만 적용한다.</p>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <div class="step"><div class="step-num">1</div><span>대상(파일 경로·도메인명·레이어)을 인수로 받는다.</span></div>
+    <div class="step"><div class="step-num">2</div><span>리뷰 유형 결정 및 에이전트 선택:<br>
+      코드 → <span class="agent-chip">developer</span> &nbsp;
+      템플릿 → <span class="agent-chip">templater</span> &nbsp;
+      규칙 → <span class="agent-chip">ruler</span>
+    </span></div>
+    <div class="step"><div class="step-num">3</div><span>에이전트가 대상을 읽고 관련 체크리스트를 적용해 발견 사항 반환.</span></div>
+    <div class="step"><div class="step-num">4</div><span>사용자 요청 없이 파일 수정 없음.</span></div>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th></th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td><strong>입력</strong></td><td>대상 지정자 (파일 경로, 도메인명, 레이어 플래그)</td></tr>
+        <tr><td><strong>출력</strong></td><td>리뷰 발견 사항 보고서 (문제점·심각도·개선 권장)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li>대상 파일이 읽기 가능해야 한다.</li>
+      <li>컨텍스트용 관련 규칙 파일(<code>.claude/rules/{layer}.md</code>)이 로드된다.</li>
+      <li>요청 파일 불필요.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span>developer + ruler + security 에이전트 병렬 실행으로 다각도 리뷰 제공.</span></div>
+    <div class="improve-item"><span>CRITICAL / HIGH / MEDIUM / LOW 심각도 분류 및 파일:라인 참조 포함 구조화 보고서.</span></div>
+    <div class="improve-item"><span><code>--fix</code> 플래그: 사용자 확인 후 LOW/MEDIUM 발견 사항 자동 수정.</span></div>
+    <div class="improve-item"><span>전체 도메인(7파일) 일괄 리뷰 지원.</span></div>
+    <div class="improve-item"><span>git diff 연동 — 마지막 커밋 이후 변경된 파일만 리뷰.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — /wh-review</footer>
+</body>
+</html>

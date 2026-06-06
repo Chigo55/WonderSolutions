@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hooks — 그룹 기획서 | Wonder Harness</title>
+<style>
+  :root{--primary:#dc2626;--secondary:#b91c1c;--accent:#f97316;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;}
+  .topbar{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:1rem 2rem;font-size:.85rem;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .topbar span{margin:0 .4rem;opacity:.5;}
+  .hero{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:3rem 2rem 2.5rem;}
+  .hero .badge-group{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:.3rem .9rem;font-size:.8rem;margin-bottom:1rem;}
+  .hero h1{font-size:2rem;font-weight:700;margin-bottom:.5rem;}
+  .hero p{opacity:.9;max-width:600px;}
+  .container{max-width:900px;margin:0 auto;padding:2rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .card h2{font-size:1.1rem;font-weight:600;color:var(--primary);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+  .card h2::before{content:'';display:inline-block;width:4px;height:1.1em;background:var(--primary);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;}
+  th{background:#f1f5f9;text-align:left;padding:.6rem .8rem;font-weight:600;color:var(--muted);}
+  td{padding:.6rem .8rem;border-top:1px solid var(--border);}
+  tr:hover td{background:#f8fafc;}
+  .blocking{display:inline-block;background:#fee2e2;color:#991b1b;border-radius:6px;padding:.15rem .5rem;font-size:.75rem;font-weight:700;}
+  .non-blocking{display:inline-block;background:#dcfce7;color:#166534;border-radius:6px;padding:.15rem .5rem;font-size:.75rem;font-weight:600;}
+  ul{padding-left:1.4rem;}
+  li{margin:.35rem 0;font-size:.92rem;}
+  .improve-item{display:flex;gap:.7rem;margin:.5rem 0;align-items:flex-start;}
+  .improve-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;margin-top:.05rem;}
+  footer{text-align:center;padding:2rem;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#">Wonder Harness</a><span>/</span><a href="#">기획서</a><span>/</span>Hooks 그룹
+</div>
+<div class="hero">
+  <div class="badge-group">그룹 기획서</div>
+  <h1>Hooks</h1>
+  <p>사용자 개입 없이 워크플로우 규율을 자동으로 강제하는 이벤트 기반 훅 4개. Node.js 빌트인만 사용하는 경량 스크립트.</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>개요</h2>
+    <table>
+      <thead><tr><th>훅</th><th>이벤트</th><th>스크립트</th><th>차단 여부</th></tr></thead>
+      <tbody>
+        <tr><td>init-requests</td><td>SessionStart</td><td><code>init-requests.js</code></td><td><span class="non-blocking">비차단</span></td></tr>
+        <tr><td>mark-template-read</td><td>PostToolUse (Read)</td><td><code>mark-template-read.js</code></td><td><span class="non-blocking">비차단</span></td></tr>
+        <tr><td>enforce-template</td><td>PreToolUse (Write|Edit)</td><td><code>enforce-template.js</code></td><td><span class="blocking">차단</span></td></tr>
+        <tr><td>enforce-init</td><td>PreToolUse (Write|Edit)</td><td><code>enforce-init.js</code></td><td><span class="blocking">차단</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>현재 동작</h2>
+    <ul>
+      <li><code>init-requests</code>: 세션 시작 시 요청 양식 시드 파일을 자동 복사한다.</li>
+      <li><code>mark-template-read</code>: 세션 중 읽은 템플릿 파일을 수동적으로 추적한다.</li>
+      <li><code>enforce-template</code>: 템플릿 탐색 없이 Write/Edit 시 접근을 거부한다.</li>
+      <li><code>enforce-init</code>: <code>/wh-init</code> 중 ADR → 규칙 → 보고서 순서를 강제한다.</li>
+      <li>공유 라이브러리(<code>hooks/scripts/lib/</code>)가 상태·마커·결정 로직을 담당한다.</li>
+      <li>상태는 <code>.claude/.state/state.json</code>에 세션 내 지속 저장된다.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>입력 / 출력</h2>
+    <table>
+      <thead><tr><th>훅</th><th>입력</th><th>출력 / 효과</th></tr></thead>
+      <tbody>
+        <tr><td>init-requests</td><td>세션 시작 이벤트</td><td>시드 파일 → <code>.claude/requests/</code> 복사</td></tr>
+        <tr><td>mark-template-read</td><td>Read 툴 호출 파라미터</td><td><code>.claude/.state/</code>에 마커 기록</td></tr>
+        <tr><td>enforce-template</td><td>Write/Edit 툴 호출 파라미터</td><td><code>allow</code> 또는 <code>deny</code> 결정</td></tr>
+        <tr><td>enforce-init</td><td>Write/Edit 툴 호출 파라미터</td><td><code>allow</code> 또는 <code>deny</code> 결정</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>의존성</h2>
+    <ul>
+      <li><code>lib/state.js</code> — 모든 훅이 공유하는 상태 파일 관리.</li>
+      <li><code>lib/marker.js</code> — 템플릿 읽기 추적.</li>
+      <li><code>lib/decide.js</code> — 템플릿 강제 결정 로직.</li>
+      <li><code>lib/init-guard.js</code> — 단계 순서 검증 로직.</li>
+      <li><code>.claude/templates/index.json</code> — 템플릿 패턴 매칭 기준.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>개선 방향</h2>
+    <div class="improve-item"><span><code>enforce-template</code> 거부 메시지에 읽어야 할 구체적인 템플릿 이름 안내.</span></div>
+    <div class="improve-item"><span><code>mark-template-read</code>에 최소 읽기 깊이(예: 10행 이상) 조건 추가.</span></div>
+    <div class="improve-item"><span>developer 코드 작성 후 PostToolUse에서 린트/포맷 자동 실행 훅 추가.</span></div>
+    <div class="improve-item"><span><code>init-requests</code>에 기존 요청 파일 만료 감지(N일 경과) 후 갱신 제안 기능.</span></div>
+    <div class="improve-item"><span>세션 재시작 없이 <code>.claude/.state/state.json</code>을 초기화하는 <code>--reset</code> 플래그 지원.</span></div>
+  </div>
+
+</div>
+<footer>Wonder Harness 기획서 — Hooks 그룹</footer>
+</body>
+</html>
