@@ -7,7 +7,7 @@ stack: stack-agnostic
 
 # Frontend Authoring Meta-Rules
 
-> Related meta-rules: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/security.md` · `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
+> Related meta-rules: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/security.md`
 > Generated output location: `.claude/rules/frontend.md`
 
 This document is the **meta-rules for rule authors (ruler)**. It defines what a complete project-specific frontend rule must contain, how to discover each section from the project's existing code, and how to validate completeness.
@@ -35,7 +35,6 @@ A complete `.claude/rules/frontend.md` must contain all of the following section
 | Permission Guards | How to conditionally render action buttons |
 | Data Mutation Conventions | changesData / row-tracking pattern before server transmission |
 | Save/Submit Flow | Required steps (cell-close → dirty-check → validate → fetch) |
-| Template Exploration | Reference to template catalog before implementation |
 | Review Checklist | Actionable binary checklist for rule compliance |
 
 ---
@@ -45,14 +44,14 @@ A complete `.claude/rules/frontend.md` must contain all of the following section
 For each required section, use the following approach to discover the project's conventions from existing code:
 
 ### Stack
-- Glob `**/*.html` → identify view technology (Thymeleaf / JSP / Freemarker / React / etc.)
+- Glob `**/*.html` (or `**/*.jsx`, `**/*.tsx`, `**/*.vue`, `**/*.svelte`) → identify view technology (server-side template / SPA / etc.)
 - Glob `**/*.js` → identify module system (ES6 modules / CommonJS / UMD / bundler)
-- Inspect `<script>` tags or `import` statements → identify grid/widget library (Kendo / AG Grid / DataTables / etc.)
+- Inspect `<script>` tags, `import` statements, or `package.json` dependencies → identify the UI component/grid library in use
 
 ### File Structure
-- Sample 3–5 JS and HTML file paths → extract the path template
-- Verify whether JS and HTML share the same camelCase name
-- Check `<script src>` or `th:src` patterns for the canonical load path
+- Sample 3–5 JS and HTML (or component) file paths → extract the path template
+- Verify whether view and script files share the same camelCase name
+- Check `<script src>` or equivalent template-engine load directives for the canonical load path
 
 ### Naming Conventions
 - Open 2–3 HTML files → extract grid element IDs → infer ID naming formula
@@ -61,11 +60,11 @@ For each required section, use the following approach to discover the project's 
 - Check popup variable declarations → identify `var` vs `const`/`let` for cross-window exposure
 
 ### Required Form Fields
-- Open 2–3 `<form id="searchForm">` blocks → list all `<input type="hidden">` fields
-- Note field names, `th:value` sources, and order
+- Open 2–3 search form blocks → list all hidden fields
+- Note field names, their data-binding sources (template attribute or JS assignment), and order
 
 ### Permission Guards
-- Search for `hasMenuRoleType` or equivalent permission check in HTML/JS
+- Search for permission check expressions (e.g., `hasMenuRoleType`, `hasRole`, `can(...)`, or equivalent) in view templates and JS
 - Identify which button types require guards and what permission type they map to
 
 ### Data Mutation Conventions
@@ -83,15 +82,15 @@ For each required section, use the following approach to discover the project's 
 The following is a complete reference implementation of `.claude/rules/frontend.md` for a Thymeleaf + Kendo web components + ES6 project. Use as a quality benchmark when authoring a new rule.
 
 ### Stack
-- View: Thymeleaf server-side rendering.
-- Grid/widgets: Kendo UI web components (`is="kendo-grid"` custom built-in element).
-- Scripts: ES6 modules. Legacy JSP and jQuery stack are forbidden.
+- View: server-side rendering (identify the template engine from the project's actual files).
+- Grid/widgets: identify the UI component library in use from `package.json` or `import` statements.
+- Scripts: identify the module system (ES6 modules / CommonJS / bundler) from existing JS files.
 
 ### File Structure
 - JS: `static/assets/js/front/wsmErp/{module}/{domainName}.js`
 - HTML: `templates/pages/wsmErp/{module}/{domainName}.html`
 - JS and HTML have a 1:1 camelCase same-name correspondence (`woWorkShift.js` ↔ `woWorkShift.html`).
-- Load JS via `th:src="@{/js/front/wsmErp/{module}/{file}.js}"` — do not use `/assets/js/` paths.
+- Load JS via the canonical template-engine path directive — do not bypass the project's established load path convention.
 
 ### Naming Conventions
 
@@ -111,7 +110,7 @@ Every screen's searchForm must include exactly 4 hidden fields: `corporationId`,
 
 ### Permission Guards
 - Common buttons (`#searchBtn` `#saveBtn` `#exportBtn` `#printBtn` `#uploadBtn` `#closeBtn`) are provided by the common layout — do not add them again in page HTML.
-- Row add/delete buttons require a `th:if="${@securityUtils.hasMenuRoleType(...)}"` permission guard — authoritative permission types are in `.claude/rules/security.md`.
+- Row add/delete buttons require a permission guard using the project's authorization mechanism — authoritative permission types are in `.claude/rules/security.md`.
 
 ### Data Mutation Conventions
 - Convert each Map in `changesData` to an array before sending.
@@ -126,17 +125,14 @@ Every screen's searchForm must include exactly 4 hidden fields: `corporationId`,
 - Do not redeclare global variables (`CONTEXT_PATH`, `COMMON_MESSAGES.*`) already declared by the common layout.
 - Widget-version-specific gotchas (datepicker init, popup-to-cell propagation, CSS quirks) are not codified in rules — capture them as inline comments in project-accumulated templates.
 
-### Template Exploration Before Implementation
-Before writing HTML or JS, explore the project template catalog (`.claude/templates/index.json`) and reference the template most similar to the screen type.
-
 ### Review Checklist
-- [ ] No legacy view technology or script library (Thymeleaf + Kendo + ES6 only)
-- [ ] JS/HTML 1:1 camelCase, path convention followed
-- [ ] Grid ID naming rule + `@GridSetup` match verified
-- [ ] searchForm required hidden fields all present
-- [ ] changesData converted to array + `deletedRows.uid` filtered from `updatedRows`
-- [ ] Save order: closeCell → isModified → validation → fetch(res.ok)
-- [ ] Widget gotchas not hardcoded in rules (delegated to template inline comments)
+- [ ] No legacy view technology or script library (stack confirmed in `.claude/rules/frontend.md`)
+- [ ] View/script file 1:1 camelCase, path convention followed
+- [ ] Grid/widget ID naming rule verified against DTO binding annotation (if applicable)
+- [ ] Search form required hidden fields all present
+- [ ] Row-change tracking: updated/deleted rows correctly collected and deduplicated before submission
+- [ ] Save order: close active cell → dirty-check → validate → fetch (check response status)
+- [ ] Widget-specific gotchas not hardcoded in rules (delegated to template inline comments)
 
 ---
 

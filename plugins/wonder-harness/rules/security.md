@@ -7,7 +7,7 @@ stack: stack-agnostic
 
 # Security Authoring Meta-Rules
 
-> Related meta-rules: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
+> Related meta-rules: `${CLAUDE_PLUGIN_ROOT}/rules/backend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md`
 > Generated output location: `.claude/rules/security.md`
 
 This document is the **meta-rules for rule authors (ruler)**. It defines what a complete project-specific security rule must contain, how to discover each section from the project's existing code and architecture, and how to validate completeness.

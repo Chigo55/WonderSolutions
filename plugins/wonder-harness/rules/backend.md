@@ -7,7 +7,7 @@ stack: stack-agnostic
 
 # Backend Authoring Meta-Rules
 
-> Related meta-rules: `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/security.md` · `${CLAUDE_PLUGIN_ROOT}/rules/templates.md`
+> Related meta-rules: `${CLAUDE_PLUGIN_ROOT}/rules/frontend.md` · `${CLAUDE_PLUGIN_ROOT}/rules/security.md`
 > Generated output location: `.claude/rules/backend.md`
 
 This document is the **meta-rules for rule authors (ruler)**. It defines what a complete project-specific backend rule must contain, how to discover each section from the project's existing code, and how to validate completeness.
@@ -35,7 +35,6 @@ A complete `.claude/rules/backend.md` must contain all of the following sections
 | Service — Query | Return type, transaction rules |
 | Service — CUD | Transaction requirements, processing order, error handling |
 | Controller | Return types per endpoint type, annotation rules |
-| Template Exploration | Reference to template catalog before implementation |
 | Review Checklist | Actionable binary checklist for rule compliance |
 
 ---
@@ -45,12 +44,12 @@ A complete `.claude/rules/backend.md` must contain all of the following sections
 For each required section, use the following approach to discover the project's conventions from existing code:
 
 ### Layer Structure
-- Glob `**/*Controller.java` → extract common package prefix
+- Glob `**/*Controller.{java,py,ts,rb,go,php}` — locate controllers → extract common package/module prefix
 - Count files per domain → determine expected file-per-domain count
 - Check import statements for cross-layer dependencies
 
 ### Naming
-- Sample 3–5 existing class names → extract casing pattern
+- Glob `**/*Service.{java,py,ts}` — locate services → sample 3–5 existing class names → extract casing pattern
 - Sample data access layer method names → extract prefix convention
 - Read `${CLAUDE_PLUGIN_ROOT}/rules/workflow.md` → domain naming formula
 
