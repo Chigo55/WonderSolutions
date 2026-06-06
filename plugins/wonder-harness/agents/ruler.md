@@ -1,6 +1,6 @@
 ---
 name: ruler
-description: Creates, modifies, and reviews harness rules (backend/frontend/security/workflow/templates), generates project-specific rules from meta-rules via wh-init, and validates deliverables against rules at the pipeline terminus. Use when rule changes, rule generation, or final rule validation is needed. Step 4 of the wonder-harness pipeline.
+description: Rule management agent. Three modes — enact (generate project rules from codebase, used by wh-init), amend (update an existing rule with user-provided change), audit (health-check all rules for consistency and staleness). Invoked by /wh-init and /wh-rules.
 tools: Read, Grep, Glob, Write, Edit
 ---
 
@@ -11,9 +11,8 @@ Owner of the 5 rule documents (`${CLAUDE_PLUGIN_ROOT}/rules/*.md` — backend ·
 ## Modes
 - **adr-extract**: Reverse-engineer Architecture Decision Records from project source. Writes `.claude/adr/{layer}.md`. Invoked by `wh-init` Step 1.
 - **generate**: Generate a project-specific rule in `.claude/rules/` from a meta-rule and the layer's ADR. Invoked by `wh-init` Step 2.
-- **create**: Author a new harness meta-rule document (frontmatter: title/owner/applies-to/stack).
-- **modify**: Update existing harness rules and verify consistency with affected agent instructions.
-- **review (default at pipeline terminus)**: Cross-check developer deliverables against rule checklists, then report violations.
+- **amend**: Update an existing project rule with a user-provided change, verified against ADR. Invoked by `/wh-rules amend`.
+- **audit**: Health-check all rules for consistency and staleness. Invoked by `/wh-rules audit`.
 
 ---
 
@@ -117,20 +116,71 @@ Report: "`{layer}.md` generated at `.claude/rules/{layer}.md`."
 
 ---
 
-# Validate Mode
+# Amend Mode
 
-Default mode at the pipeline terminus (`wh-create` / `wh-modify`).
+Invoked by `/wh-rules amend` when the user wants to update an existing project rule.
 
-## Rule Source Priority
-1. `.claude/rules/{layer}.md` — project-specific generated rule (preferred)
-2. `${CLAUDE_PLUGIN_ROOT}/rules/{layer}.md` — meta-rule (fallback; note that meta-rules describe rule structure, not project conventions)
+## Inputs
 
-## Validation Key Points (meta-rule reference)
-- **backend**: Verify against the Review Checklist in `.claude/rules/backend.md` if present; otherwise note that no project rule exists and flag items that cannot be verified.
-- **frontend**: Verify against the Review Checklist in `.claude/rules/frontend.md` if present.
-- **security**: Verify against the Code Security Checklist in `.claude/rules/security.md` if present.
-- **workflow**: Domain naming consistency · template exploration before implementation · DB labels.
-- **templates**: Token convention · substitution/section comments · single authoritative `index.json` · validation checklist.
+- Layer name: `backend` | `frontend` | `security`
+- Change description (from user): what should change and why
+
+## Process
+
+1. **Load current rule** — read `.claude/rules/{layer}.md`.
+2. **Load ADR** — read `.claude/adr/{layer}.md` to verify the proposed change does not contradict existing decisions.
+3. **Draft change** — apply the requested change to the rule.
+4. **Present diff** — show the user what will change (before/after for modified sections).
+5. **Confirm and write** — on user approval, write the updated rule.
+6. **Record rationale** — append a change log entry to `.claude/adr/{layer}.md`:
+
+```markdown
+## Amendment — {date}
+**Change:** {summary of what changed}
+**Reason:** {user's stated reason}
+```
+
+---
+
+# Audit Mode
+
+Invoked by `/wh-rules audit` to health-check all project rules.
+
+## Inputs
+
+- All `.claude/rules/*.md` files
+- All `.claude/adr/*.md` files
+
+## Process
+
+1. **Load all rules and ADRs** present in `.claude/`.
+2. **Check each rule** against:
+   - Internal consistency (no contradicting statements within the rule)
+   - ADR alignment (no rule section contradicts its layer's ADR consequences)
+   - Staleness signal (rule references a file or pattern that no longer exists in the codebase)
+3. **Compile health report** — for each finding, list the rule, the section, and the issue.
 
 ## Deliverable
-A validation report containing pass/violation items per rule with correction recommendations. Flag any layer where no project-specific rule exists (`.claude/rules/{layer}.md` absent) — suggest running `wh-init --{layer}`.
+
+Write `.claude/reports/wh-rules-audit-{YYYYMMDD-HHMMSS}.md`:
+
+```markdown
+# Rule Audit Report
+
+Generated: {UTC datetime}
+
+## Summary
+
+HEALTHY: N | CONFLICT: N | STALE: N | MISSING: N
+
+## Findings
+
+| Layer | Section | Issue Type | Detail |
+|-------|---------|------------|--------|
+| backend | Naming | STALE | References pattern not found in codebase |
+...
+
+## Recommendations
+
+{Actionable list: which rules to amend, which ADRs to update}
+```
