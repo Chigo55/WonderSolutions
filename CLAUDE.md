@@ -1,9 +1,9 @@
 # wonder-harness Marketplace
 
-A single-plugin marketplace for the Claude Code development harness.
+A single-plugin marketplace for the Claude Code development harness (stack-agnostic 6-stage framework).
 
-> **Target stack**: Java 17 / Spring Boot 3.x / MyBatis (SQL Server stored procedures) / Thymeleaf / Kendo UI web components / Bootstrap 5 / ES6.
-> The plugin is implemented as an orchestration pipeline harness — includes agents (planner·templater·developer·ruler), commands (wh-create·wh-modify·wh-review), a template-explore enforcement hook, rules (backend·frontend·security·workflow·templates), and request/template seeds.
+> Stages: analysis · research · planning · implementation · inspection · modification.
+> Includes agents (analyzer·developer·inspector·modifier·orchestrator·planner·researcher·ruler), commands (wh-init·wh-review·wh-rules·wh-run), rules (backend·frontend·security·workflow), and skills (caveman·grill-me·handoff·write-a-skill).
 
 ## Development Commands
 
@@ -29,13 +29,13 @@ root/                           ← marketplace repository
   ├── plugins/
   │     └── wonder-harness/     ← wonder-harness plugin
   │           ├── .claude-plugin/plugin.json   ← plugin manifest
-  │           ├── commands/     ← slash commands (wh-create·wh-modify·wh-review)
-  │           ├── agents/       ← isolated sub-agents (planner·templater·developer·ruler)
+  │           ├── commands/     ← slash commands (wh-init·wh-review·wh-rules·wh-run)
+  │           ├── agents/       ← isolated sub-agents (analyzer·developer·inspector·modifier·orchestrator·planner·researcher·ruler)
   │           ├── hooks/        ← event hooks (hooks.json + scripts/ — template explore enforcement)
   │           ├── rules/        ← harness rules (backend·frontend·security·workflow·templates)
   │           ├── templates/    ← template scaffold + index schema·seed
   │           ├── requests/     ← request form seeds (create_request·modify_request)
-  │           └── skills/       ← SKILL.md skills (grill-me·handoff·write-a-skill)
+  │           └── skills/       ← SKILL.md skills (caveman·grill-me·handoff·write-a-skill)
   │
   ├── CLAUDE.md                 ← this file
   └── package.json              ← monorepo root
