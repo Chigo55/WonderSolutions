@@ -17,6 +17,9 @@ describe('checkStagePermission — no enforcement outside wh-run', () => {
   it('allows when state is null', () => {
     assert.equal(checkStagePermission('/proj/src/Foo.java', null), null);
   });
+  it('allows when state.current is missing (malformed state)', () => {
+    assert.equal(checkStagePermission('/proj/src/Foo.java', {}), null);
+  });
 });
 
 describe('checkStagePermission — work-doc.md', () => {
@@ -40,6 +43,8 @@ describe('checkStagePermission — modification-report.md', () => {
   const rpt = '/proj/.claude/runs/20260606-test/modification-report.md';
   it('allows modifier to write modification-report.md', () => assert.equal(checkStagePermission(rpt, state('modifier')), null));
   it('denies inspector writing modification-report.md', () => assert.ok(checkStagePermission(rpt, state('inspector'))?.deny));
+  it('denies analyzer writing modification-report.md', () => assert.ok(checkStagePermission(rpt, state('analyzer'))?.deny));
+  it('denies developer writing modification-report.md', () => assert.ok(checkStagePermission(rpt, state('developer'))?.deny));
 });
 
 describe('checkStagePermission — code files', () => {

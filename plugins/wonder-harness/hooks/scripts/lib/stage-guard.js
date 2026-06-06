@@ -8,6 +8,7 @@ function normalize(p) {
 // Returns null (allow) or { deny: true, reason: string }
 function checkStagePermission(filePath, state) {
   if (!state) return null;
+  if (!state?.current) return null;
   if (state.current.command !== 'wh-run') return null;
 
   const stage = state.current.stage;
