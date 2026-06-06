@@ -20,7 +20,8 @@
 
 - **파이프라인**: analyzer(분석) → researcher(조사) → planner(계획) → developer(구현) → inspector(검사) → modifier(수정)
 - **조율**: orchestrator 에이전트가 단계 간 흐름을 조율한다.
-- **검증**: ruler 에이전트가 backend · frontend · security · workflow 규칙에 대조 검증한다.
+- **검증**: ruler 에이전트가 backend · frontend · security · workflow · templates 규칙에 대조 검증한다.
+- **템플릿 카탈로그**: researcher가 조사 시 기존 패턴을 카탈로그에서 꺼내 주입하고, 재사용 가치가 있는 패턴을 후보로 마킹한다. `/wh-template`으로 승격·관리한다.
 - **단계 강제 훅**: 현재 파이프라인 단계를 벗어난 `Write`/`Edit` 를 차단한다.
 
 ---
@@ -54,6 +55,7 @@ claude --plugin-dir ./wonder-harness/plugins/wonder-harness
 | `/wh-run` | 6단계 파이프라인 단일 진입점 |
 | `/wh-review` | inspector 에이전트를 통한 독립 코드 리뷰 |
 | `/wh-rules` | ruler 규칙 수정(amend) 또는 감사(audit) |
+| `/wh-template` | 템플릿 카탈로그 관리 — 후보 승격(promote) · 추가(add) · 수정(edit) · 삭제(delete) |
 
 ---
 
@@ -104,7 +106,8 @@ wonder-harness/  (마켓플레이스 저장소)
       commands/             ← 슬래시 커맨드 (wh-init·wh-run·wh-review·wh-rules)
       agents/               ← 에이전트 (orchestrator·analyzer·researcher·planner·developer·inspector·modifier·ruler)
       hooks/                ← 이벤트 훅 (단계 강제)
-      rules/                ← 하네스 규칙 (backend·frontend·security·workflow)
+      rules/                ← 하네스 규칙 (backend·frontend·security·workflow·templates)
+      templates/            ← 템플릿 카탈로그 (index.json + scaffolds/)
       requests/             ← 요청 양식 시드
       skills/               ← SKILL.md 스킬 (grill-me·handoff·write-a-skill)
   package.json              ← 모노레포 루트
