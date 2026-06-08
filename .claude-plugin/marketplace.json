@@ -14,7 +14,7 @@
       "name": "wonder-harness",
       "source": "./plugins/wonder-harness",
       "description": "Stack-agnostic 6-stage development framework for Claude Code (analysis · research · planning · implementation · inspection · modification)",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "category": "Productivity",
       "tags": ["harness", "workflow", "stack-agnostic", "6-stage", "analysis", "planning"],
       "author": {

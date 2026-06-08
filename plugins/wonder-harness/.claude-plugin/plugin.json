@@ -1,6 +1,6 @@
 {
   "name": "wonder-harness",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Stack-agnostic 6-stage development framework for Claude Code (analysis · research · planning · implementation · inspection · modification)",
   "author": {
     "name": "InHo Jeong",
