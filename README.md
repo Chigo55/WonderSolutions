@@ -115,11 +115,11 @@ wonder-harness/  (마켓플레이스 저장소)
         plugin.json         ← 플러그인 매니페스트
       commands/             ← 슬래시 커맨드 (wh-init·wh-run·wh-review·wh-rules·wh-template)
       agents/               ← 에이전트 (orchestrator·analyzer·researcher·planner·developer·inspector·modifier·ruler)
-      hooks/                ← 이벤트 훅 (단계 강제)
+      hooks/                ← 이벤트 훅 (init·단계 강제)
       rules/                ← 하네스 규칙 (structure·security·templates·workflow)
       templates/            ← 전역 템플릿 카탈로그 (index.json + scaffolds/)
       requests/             ← 요청 양식 시드
-      skills/               ← SKILL.md 스킬 (grill-me·hand-off·write-a-skill)
+      skills/               ← SKILL.md 스킬 (cave-man·grill-me·hand-off·write-a-skill)
   package.json              ← 모노레포 루트
   CLAUDE.md
 ```
