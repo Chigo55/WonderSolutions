@@ -1,0 +1,12 @@
+{
+  "name": "wonder-utilities",
+  "version": "0.1.0",
+  "description": "General-purpose utilities for Claude Code — standalone skills (cave-man · grill-me · hand-off · write-a-skill) and a reusable template catalog with the templater agent.",
+  "author": {
+    "name": "InHo Jeong",
+    "email": "inho.jeong@wonderit.kr"
+  },
+  "homepage": "https://github.com/Chigo55/wonder-solutions",
+  "license": "MIT",
+  "keywords": ["claude-code", "plugin", "utilities", "skills", "templates", "wonder-solutions"]
+}

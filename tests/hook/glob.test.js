@@ -1,7 +1,7 @@
 // tests/hook/glob.test.js
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { globToRegExp } = require('../../plugins/wonder-harness/hooks/scripts/lib/glob.js');
+const { globToRegExp } = require('../../plugins/wonder-workflows/hooks/scripts/lib/glob.js');
 
 test('* matches within a single segment only', () => {
   const re = globToRegExp('src/*.java');

@@ -1,12 +1,12 @@
 {
-  "name": "wonder-harness-marketplace",
+  "name": "wonder-solutions",
   "version": "0.1.0",
   "private": true,
-  "description": "Single-plugin marketplace for the Claude Code development harness",
+  "description": "WonderSolutions — 3-plugin marketplace for the Claude Code development pipeline",
   "engines": { "node": ">=18.0.0" },
   "scripts": {
     "test": "node --test",
-    "validate": "claude plugin validate ./plugins/wonder-harness"
+    "validate": "claude plugin validate ./plugins/wonder-workflows && claude plugin validate ./plugins/wonder-utilities && claude plugin validate ./plugins/wonder-plugins"
   },
   "license": "MIT"
 }

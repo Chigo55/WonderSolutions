@@ -1,0 +1,18 @@
+{
+  "name": "wonder-plugins",
+  "version": "0.1.0",
+  "description": "Dependency aggregator for the WonderSolutions suite — installs the recommended companion plugins (superpowers, context7, claude-md-management, code-simplifier).",
+  "author": {
+    "name": "InHo Jeong",
+    "email": "inho.jeong@wonderit.kr"
+  },
+  "homepage": "https://github.com/Chigo55/wonder-solutions",
+  "license": "MIT",
+  "keywords": ["wonder-solutions", "dependencies", "aggregator", "bundle"],
+  "dependencies": [
+    { "name": "superpowers", "marketplace": "claude-plugins-official" },
+    { "name": "context7", "marketplace": "claude-plugins-official" },
+    { "name": "claude-md-management", "marketplace": "claude-plugins-official" },
+    { "name": "code-simplifier", "marketplace": "claude-plugins-official" }
+  ]
+}
