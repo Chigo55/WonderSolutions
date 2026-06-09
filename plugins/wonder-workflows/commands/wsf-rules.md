@@ -19,11 +19,6 @@ Read the argument:
 3. Invoke **ruler** in **amend mode** with the layer and the user's change description.
 4. Ruler presents the proposed change for user confirmation.
 5. On approval, ruler writes the updated `.claude/rules/{layer}.md` and appends amendment log to `.claude/adr/{layer}.md`.
-6. Record state:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/write-state.js" "<cwd>" "rules.{layer}" "<ISO-timestamp>"
-```
 
 ## Audit mode
 

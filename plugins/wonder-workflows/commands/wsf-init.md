@@ -1,5 +1,5 @@
 ---
-description: Initializes wonder-workflows for a project — copies request seeds, reverse-engineers ADRs, generates project-specific rules, and produces HTML reports. Run once per project before using /wsf-run.
+description: Initializes wonder-workflows for a project — reverse-engineers ADRs, generates project-specific rules, and produces HTML reports. Run once per project before using /wsf-run.
 argument-hint: "[--layers <layer1,layer2...>] — e.g. --layers core-logic,security"
 ---
 
@@ -7,15 +7,10 @@ argument-hint: "[--layers <layer1,layer2...>] — e.g. --layers core-logic,secur
 
 Initializes wonder-workflows on a new project through three mandatory steps executed in order for each active layer.
 
-## 0. Parse flags and copy request seeds
+## 0. Parse flags
 
 Read arguments for `--layers` (comma-separated list of active layers, e.g. `--layers core-logic,security`).
 If no flags are provided, auto-detect the project structure and ask the user which active layers to initialize (defaulting to `security`).
-
-Copy request seeds (runs once, before the layer loop):
-- This is handled automatically by the `SessionStart` hook (`init-requests.js`).
-- Verify `.claude/requests/create_request.md` exists.
-- If missing, run: `node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/init-requests.js` via the Bash tool with `{"cwd": "<project_cwd>"}` on stdin.
 
 ## 1–3. For each active layer (sequentially)
 
@@ -31,13 +26,7 @@ Ruler will:
 3. Present the ADR summary to the user for confirmation
 4. Write `.claude/adr/{layer}.md`
 
-After ruler confirms the ADR file is written, record the timestamp in state:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/write-state.js" "<cwd>" "adr.{layer}" "<ISO-timestamp>"
-```
-
-Replace `{layer}` with the actual layer name and `<ISO-timestamp>` with the current UTC time in ISO 8601 format (e.g. `2026-06-05T10:00:00Z`).
+After ruler confirms the ADR file (`.claude/adr/{layer}.md`) is written, proceed to Step 2.
 
 ### Step 2 — Rule Generation
 
@@ -50,11 +39,7 @@ Ruler will:
 4. Present extracted conventions and any ADR conflicts to the user
 5. Write `.claude/rules/{layer}.md`
 
-After ruler confirms the rule file is written, record the timestamp:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/write-state.js" "<cwd>" "rules.{layer}" "<ISO-timestamp>"
-```
+After ruler confirms the rule file (`.claude/rules/{layer}.md`) is written, proceed to Step 3.
 
 ### Step 3 — HTML Report
 
@@ -106,12 +91,6 @@ The report is a user-facing document and **must be written entirely in Korean** 
 </html>
 ```
 
-After writing the report file, record it in state:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/write-state.js" "<cwd>" "reports.{layer}" "wsf-init-{layer}-YYYYMMDD-HHMMSS.html"
-```
-
 ## 4. Result Report
 
 After all active layers are processed, output:
@@ -139,5 +118,5 @@ Before Step 1 for each layer, check whether `.claude/adr/{layer}.md` or `.claude
 - If either exists, ask:
   > "`.claude/adr/{layer}.md` and/or `.claude/rules/{layer}.md` already exist. Overwrite or skip? (overwrite / skip)"
   - `skip` → proceed to the next layer.
-  - `overwrite` → continue with Step 1, which will overwrite both artifacts and reset state entries for this layer.
+  - `overwrite` → continue with Step 1, which will overwrite both artifacts for this layer.
 

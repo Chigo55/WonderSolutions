@@ -22,7 +22,6 @@
 - **Orchestration**: the `orchestrator` agent coordinates stage-to-stage flow
 - **Rule management**: the `ruler` agent (wonder-workflows) handles ADR extraction, generation, amendment, and audit
 - **Template catalog**: the `templater` agent (wonder-utilities) manages the hybrid local/global template catalog; `/wsu-template` handles promote · add · edit · delete
-- **Stage enforcement hooks**: block `Write`/`Edit` calls that fall outside the active pipeline stage
 
 ---
 
@@ -34,8 +33,6 @@ The core 6-stage pipeline plugin.
 
 - **Commands**: `/wsf-run` · `/wsf-init` · `/wsf-review` · `/wsf-rules`
 - **Agents**: orchestrator · analyzer · researcher · planner · developer · inspector · modifier · ruler (rule modes: adr-extract · generate · amend · audit)
-- **Hooks**: `enforce-init.js` (blocks writes until `/wsf-init` completes) · `enforce-stage.js` (blocks off-stage writes) · `init-requests.js` (SessionStart, copies request seeds)
-- **State file**: `.claude/.ws-state.json`
 - **Init reports**: `.claude/reports/wsf-init-{layer}-{timestamp}.html`
 
 ### wonder-utilities
@@ -92,7 +89,7 @@ claude --plugin-dir ./wonder-solutions/plugins/wonder-utilities
 
 | Command | Plugin | Description |
 |---------|--------|-------------|
-| `/wsf-init` | wonder-workflows | Project initialization — layer ADR reverse-engineering + state record + HTML reports |
+| `/wsf-init` | wonder-workflows | Project initialization — layer ADR reverse-engineering + HTML reports |
 | `/wsf-run` | wonder-workflows | Single entry point for the 6-stage pipeline |
 | `/wsf-review` | wonder-workflows | Standalone code review via the inspector agent |
 | `/wsf-rules` | wonder-workflows | Rule amendment (amend) or audit (audit) via the ruler agent |
@@ -129,15 +126,14 @@ wonder-solutions/  (marketplace repository)
       .claude-plugin/plugin.json
       commands/                  ← wsf-init · wsf-run · wsf-review · wsf-rules
       agents/                    ← orchestrator · analyzer · researcher · planner · developer · inspector · modifier · ruler
-      hooks/                     ← enforce-init · enforce-stage · init-requests
       rules/                     ← structure · security · workflow
-      requests/                  ← request form seeds
     wonder-utilities/            ← skills & templates plugin (v0.1.0)
       .claude-plugin/plugin.json
       commands/                  ← wsu-template
       agents/                    ← templater
       rules/                     ← templates
       templates/                 ← global template catalog (index.json + scaffolds/)
+      requests/                  ← request form seeds
       skills/                    ← cave-man · grill-me · hand-off · write-a-skill
     wonder-plugins/              ← optional companion aggregator (v0.1.0)
       .claude-plugin/plugin.json ← declares superpowers · context7 · claude-md-management · code-simplifier as deps

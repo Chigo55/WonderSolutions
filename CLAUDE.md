@@ -33,9 +33,7 @@ root/                                ← WonderSolutions marketplace repository
   │     │     ├── .claude-plugin/plugin.json   ← plugin manifest
   │     │     ├── commands/          ← slash commands (wsf-init · wsf-review · wsf-rules · wsf-run)
   │     │     ├── agents/            ← pipeline agents (analyzer · developer · inspector · modifier · orchestrator · planner · researcher · ruler[rule modes only])
-  │     │     ├── hooks/             ← event hooks (hooks.json + scripts/ — init & pipeline-stage enforcement)
-  │     │     ├── rules/             ← pipeline meta-rules (structure · security · workflow)
-  │     │     └── requests/          ← request form seeds (create_request · modify_request)
+  │     │     └── rules/             ← pipeline meta-rules (structure · security · workflow)
   │     │
   │     ├── wonder-utilities/        ← skills & template catalog plugin
   │     │     ├── .claude-plugin/plugin.json   ← plugin manifest
@@ -43,6 +41,7 @@ root/                                ← WonderSolutions marketplace repository
   │     │     ├── agents/            ← templater agent (template modes: promote · add · edit · delete)
   │     │     ├── rules/             ← templates meta-rule (templates.md)
   │     │     ├── templates/         ← template catalog (index.json + index.schema.json + scaffolds/)
+  │     │     ├── requests/          ← request form seeds (create_request · modify_request)
   │     │     └── skills/            ← SKILL.md skills (cave-man · grill-me · hand-off · write-a-skill)
   │     │
   │     └── wonder-plugins/          ← optional companion aggregator (dependency plugin only)
@@ -60,10 +59,9 @@ root/                                ← WonderSolutions marketplace repository
 | `skills/` | `<name>/SKILL.md` format (wonder-utilities only) |
 | `agents/` | `<name>.md` markdown agent |
 | `commands/` | `<name>.md` slash command |
-| `hooks/hooks.json` | Authoritative hook declaration (scripts go in `hooks/scripts/`) — wonder-workflows only |
 | `rules/` | `<name>.md` meta-rule (structure · security · workflow owned by ruler in wonder-workflows; templates.md owned by templater in wonder-utilities) |
 | `templates/` | `scaffolds/` + `index.json` (catalog seed) · `index.schema.json` — wonder-utilities only |
-| `requests/` | Request form seeds (copied to `.claude/requests/`) — wonder-workflows only |
+| `requests/` | Request form seeds (reference copies; provisioned manually) — wonder-utilities only |
 
 ## Version Update Rules
 
@@ -79,6 +77,5 @@ Commit order: `fix/feat:` commit → separate `chore: bump version to x.x.x` com
 
 - All plugin paths must be relative paths starting with `./`
 - No references to files outside the plugin (cache-copy approach)
-- Hooks must be lightweight JS (Node.js built-ins only — no external dependencies)
-- Hooks are non-blocking by default (suggestions, not blocks). **Exception**: the two PreToolUse enforcement hooks (`hooks/scripts/enforce-init.js`, `hooks/scripts/enforce-stage.js`) in wonder-workflows block `Write|Edit` calls via `permissionDecision: "deny"` — `enforce-init.js` when `/wsf-init` has not yet completed, and `enforce-stage.js` when the active pipeline stage forbids writing the target file. (The `SessionStart` hook `init-requests.js` is non-blocking — it only copies request seeds.)
+- If hooks are added, they must be lightweight JS (Node.js built-ins only — no external dependencies)
 - External plugins (superpowers · context7 · claude-md-management · code-simplifier) are **not** hard dependencies of wonder-workflows or wonder-utilities. They are aggregated by the optional `wonder-plugins` plugin. Install wonder-plugins to transitively pull the full companion toolset.

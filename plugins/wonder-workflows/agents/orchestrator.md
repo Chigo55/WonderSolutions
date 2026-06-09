@@ -29,24 +29,18 @@ Generate a run-id: `YYYYMMDD-{slug}` where `{slug}` is the first 4-5 words of th
 
 ## Pipeline Execution
 
-For each stage, update state BEFORE invoking the agent:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/write-state.js" "<cwd>" "current.stage" "<stage-name>"
-```
-
-Then invoke the specialist agent (use the Agent tool with the agent name). Pass the previous stage's output as context.
+For each stage, track the current stage yourself in this conversation — announce it at the start of each dispatch (e.g. `[Stage 2 / Research]`) so the active stage is visible in the transcript — then invoke the specialist agent (use the Agent tool with the agent name). Pass the previous stage's output as context.
 
 **Stage order (never skip, never reorder):**
 
-| # | Stage | Agent | State value |
-|---|-------|-------|------------|
-| 1 | Analysis | analyzer | `analyzer` |
-| 2 | Research | researcher | `researcher` |
-| 3 | Planning | planner | `planner` |
-| 4 | Implementation | developer | `developer` |
-| 5 | Inspection | inspector | `inspector` |
-| 6 | Modification | modifier | `modifier` |
+| # | Stage | Agent |
+|---|-------|-------|
+| 1 | Analysis | analyzer |
+| 2 | Research | researcher |
+| 3 | Planning | planner |
+| 4 | Implementation | developer |
+| 5 | Inspection | inspector |
+| 6 | Modification | modifier |
 
 After each agent completes, confirm its deliverable exists before proceeding to the next stage.
 
@@ -79,8 +73,8 @@ Write to `.claude/runs/{run-id}/work-doc.md`.
 Present the inspection-report summary to the user. Ask:
 > "Inspection complete. The report is at `.claude/runs/{run-id}/inspection-report.md`. Do you want to proceed to Stage 6 (modification) to fix the reported issues, or close the task?"
 
-- If **modify**: update stage to `modifier`, invoke modifier agent.
-- If **close**: update `current.stage` to `null`, update `current.command` to `null`. Present final summary.
+- If **modify**: invoke the modifier agent.
+- If **close**: present the final summary.
 
 ## Final Summary
 
@@ -101,5 +95,3 @@ Inspection result: PASS N | VIOLATION N | WARNING N
 💡 Evolution Reminder: N template candidate(s) were marked during this run.
    Run `/wsu-template promote` to save them into your catalog and grow the framework!
 ```
-
-Reset state: command=null, run-id=null, stage=null.
