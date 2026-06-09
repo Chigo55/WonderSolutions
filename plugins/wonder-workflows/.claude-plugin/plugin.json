@@ -1,6 +1,6 @@
 {
   "name": "wonder-workflows",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Stack-agnostic 6-stage development pipeline for Claude Code (analysis · research · planning · implementation · inspection · modification).",
   "author": {
     "name": "InHo Jeong",

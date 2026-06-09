@@ -14,7 +14,7 @@
       "name": "wonder-workflows",
       "source": "./plugins/wonder-workflows",
       "description": "Stack-agnostic 6-stage development pipeline for Claude Code (analysis · research · planning · implementation · inspection · modification)",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "Productivity",
       "tags": ["workflow", "pipeline", "stack-agnostic", "6-stage", "analysis", "planning"],
       "author": {
@@ -28,7 +28,7 @@
       "name": "wonder-utilities",
       "source": "./plugins/wonder-utilities",
       "description": "General-purpose utilities — standalone skills and a reusable template catalog with the templater agent",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "Productivity",
       "tags": ["utilities", "skills", "templates", "wonder-solutions"],
       "author": {

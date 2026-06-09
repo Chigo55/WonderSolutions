@@ -1,6 +1,6 @@
 {
   "name": "wonder-utilities",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "General-purpose utilities for Claude Code — standalone skills (cave-man · grill-me · hand-off · write-a-skill) and a reusable template catalog with the templater agent.",
   "author": {
     "name": "InHo Jeong",
