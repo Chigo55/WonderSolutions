@@ -6,7 +6,8 @@
   "engines": { "node": ">=18.0.0" },
   "scripts": {
     "test": "node --test",
-    "validate": "claude plugin validate ./plugins/wonder-workflows && claude plugin validate ./plugins/wonder-utilities && claude plugin validate ./plugins/wonder-plugins"
+    "validate": "claude plugin validate ./plugins/wonder-workflows && claude plugin validate ./plugins/wonder-utilities && claude plugin validate ./plugins/wonder-plugins",
+    "sync:antigravity": "node scripts/sync-agents.js"
   },
   "license": "MIT"
 }
