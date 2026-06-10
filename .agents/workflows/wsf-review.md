@@ -15,18 +15,18 @@ Standalone inspection of one or more files using the inspector agent.
 
 ## 2. Load project rules
 
-Read all `.claude/rules/*.md` files (e.g. security.md, active structural layers) if they exist. If none exist, warn: "No project rules found. Run /wsf-init first for best results. Proceeding with general guidelines."
+Read all `.antigravity/rules/*.md` files (e.g. security.md, active structural layers) if they exist. If none exist, warn: "No project rules found. Run /wsf-init first for best results. Proceeding with general guidelines."
 
 ## 3. Invoke inspector
 
 Dispatch the **inspector** agent with:
 - The target file paths
-- The project rules (from `.claude/rules/`)
+- The project rules (from `.antigravity/rules/`)
 - No §Planning context (skip functional correctness dimension — only quality, security, and project rule compliance apply)
 
 ## 4. Write report
 
-Inspector writes the report to `.claude/reports/wsf-review-{YYYYMMDD-HHMMSS}.md` (not under `runs/` since this is a standalone review).
+Inspector writes the report to `.antigravity/reports/wsf-review-{YYYYMMDD-HHMMSS}.md` (not under `runs/` since this is a standalone review).
 
 ## 5. Present results
 

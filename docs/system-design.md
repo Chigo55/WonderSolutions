@@ -56,12 +56,12 @@ graph TD
 ### 2.3. 원칙 C. 통합 추상 도구 매핑 (Unified Abstract Tool Mapping)
 * 에이전트는 특정 플랫폼의 API 이름을 직접 호출하지 않고, 플랫폼 독립적으로 정의된 추상 도구(Abstract Tools)만을 사용합니다.
 * 빌드타임 어댑터는 이 추상 도구명을 각 호스트의 실제 도구명으로 **정적 매핑(static mapping)**합니다. (✅ `mapTools()`: `Read`→`view_file` 등 — §3 매트릭스 참조)
-* **미지의 도구 정책 (Fail-fast):** 정식 소스의 에이전트가 추상 도구 집합 밖의 도구명을 선언하면, 어댑터는 이를 조용히 통과(passthrough)시키지 않고 **빌드타임에 명확한 에러로 실패**시킵니다. (원칙 C "추상 도구만 사용" 및 §7.2 커스텀 제한 원칙과 정합) (⚠️ 현재 `mapTools()`는 미지의 도구를 그대로 통과시킴 — fail-fast로 전환 필요. [Q5 갭])
+* **미지의 도구 정책 (Fail-fast):** 정식 소스의 에이전트가 추상 도구 집합 밖의 도구명을 선언하면, 어댑터는 이를 조용히 통과(passthrough)시키지 않고 **빌드타임에 명확한 에러로 실패**시킵니다. (원칙 C "추상 도구만 사용" 및 §7.2 커스텀 제한 원칙과 정합) (✅ [Q5 해소] `mapTools()`가 `Unknown abstract tool "<name>" in <agent-file>` 에러로 빌드를 실패시킴)
 
 ### 2.4. 원칙 D. 실행 및 상태 격리 샌드박스 (Isolated Namespace & State)
 * 실행 호스트가 타 플랫폼 환경이나 상위 작업 환경을 오염시키지 않도록, 모든 가변 상태는 격리된 네임스페이스에 기록합니다.
 * 모든 실행의 중간 단계 및 산출물은 **플랫폼별 런타임 상태 루트 추상 변수 `${WS_STATE_ROOT}`** 하위에 기록되어 상호 무간섭성을 보장하며, 상태 전이는 표준 작업 문서(`work-doc.md`)를 통해 추상화합니다.
-* 정식 소스 본문은 경로를 하드코딩하지 않고 `${WS_STATE_ROOT}/runs/{run-id}/work-doc.md` 형태로 작성하며, **각 어댑터가 빌드/init 시점에 플랫폼별 실제 경로로 해석**합니다. (`${CLAUDE_PLUGIN_ROOT}` 변수 선례를 런타임 상태 루트까지 확장)
+* 정식 소스는 Claude 네이티브 산출물 그 자체이므로(호스트가 빌드 없이 직접 로드), 본문에는 `${WS_STATE_ROOT}`의 **Claude 해석값(`.claude/`)을 정식 표기로 사용**합니다. 각 어댑터는 빌드/init 시점에 이 상태 루트 접두사(`.claude/`)와 플랫폼 레지스트리 파일명(`ws-state.claude.json`)을 플랫폼별 실제 값으로 재해석(치환)합니다 — `${CLAUDE_PLUGIN_ROOT}` 변수 선례를 상태 루트까지 확장하되, Claude 측에 별도 빌드 단계를 요구하지 않는 방식입니다.
 
   | 플랫폼 | `${WS_STATE_ROOT}` 해석값 | 비고 |
   | :--- | :--- | :--- |
@@ -69,7 +69,7 @@ graph TD
   | Codex | `.codex/wonder` | ✅ 현행 (`.codex/wonder/runs/{run-id}/`) |
   | Antigravity | `.antigravity` | 🚧 기본 가정값. 리터럴은 버전 민감 → 어댑터가 hook 페이로드의 `artifactDirectoryPath`로 동적 확인 |
 
-  > ⚠️ [Q6 갭] 현재 `sync-agents.js`는 에이전트/커맨드 **본문을 그대로 복사**하므로(frontmatter만 변환), 생성된 Antigravity 산출물에 Claude 경로(`.claude/runs/`, `.claude/rules/`)가 누수됩니다. 어댑터가 본문의 `${WS_STATE_ROOT}`를 플랫폼별로 치환하도록 수정 필요.
+  > ✅ [Q6 해소] `sync-agents.js`의 `resolveStatePaths()`가 본문·frontmatter description의 상태 루트 접두사(`.claude/` → `.antigravity/`)와 레지스트리 파일명(`ws-state.claude.json` → `ws-state.antigravity.json`)을 치환합니다. `.claude-plugin/`·`${CLAUDE_PLUGIN_ROOT}`·`ws-state.<platform>.json` 자리표시자는 보존됩니다.
 
 ### 2.5. 원칙 E. 중앙 집중식 상태 레지스트리 (Centralized State Registry)
 * 시스템은 프로젝트 루트에 상주하는 플랫폼별 격리 설정 파일(`ws-state.<platform>.json`)을 통해 각 플러그인의 로드 상태, 활성화된 기능 플래그 및 사용자 구성을 분리하여 제어합니다.
@@ -403,13 +403,15 @@ WonderSolutions는 **정식 소스(Claude 네이티브 플러그인 포맷)**와
 * 3-플러그인 분리 모델 및 독립 버전 관리.
 * 추상 도구 정적 매핑 (`mapTools()` — Antigravity).
 * `ws-state.claude.json` 레지스트리 (Claude) — `/wsf-init` init타임 프로비저닝(자가등록·병합), `/wsf-run`·orchestrator 읽기 전용 바인딩, §7.3 자가치유 정책.
+* [Q5] 미지의 도구 fail-fast — `mapTools()`가 추상 집합 밖 도구를 빌드타임 에러로 거부.
+* [Q6] 경로 변수 치환 — `resolveStatePaths()`가 상태 루트(`.claude/`)·레지스트리 파일명을 플랫폼별로 재해석 (Antigravity 산출물의 Claude 경로 누수 제거).
 
 ### 8.2. 확정된 로드맵 및 정정 대상 (🚧 Roadmap / ⚠️ Gap)
 본 개정에서 설계로 확정되었으나 아직 코드에 반영되지 않은 항목입니다. 우선순위 순:
 
 1. **[Q4·Q3] Codex 위임형 승격 + 드리프트 해소** — `sync:codex` 어댑터를 작성해 정식 소스에서 Codex 산출물(skill) 및 `.codex/agents/*.toml` 서브에이전트 정의를 생성. 수작업 Codex 레이어를 생성형으로 전환.
-2. **[Q6] 경로 변수 치환** — `sync-agents.js`가 본문의 `${WS_STATE_ROOT}`를 플랫폼별 경로로 치환하도록 수정 (현재 `.claude/` 경로 누수 제거). 정식 소스 본문을 `${WS_STATE_ROOT}` 기반으로 일괄 변경.
-3. **[Q5] 미지의 도구 fail-fast** — `mapTools()`의 silent passthrough를 빌드타임 에러로 전환.
+2. **[Q6] 경로 변수 치환** — ✅ 구현 완료 (`resolveStatePaths()` — 정식 소스는 Claude 해석값 `.claude/`를 정식 표기로 유지, 어댑터가 재해석. §2.4 정정 참조).
+3. **[Q5] 미지의 도구 fail-fast** — ✅ 구현 완료 (`mapTools()` 빌드타임 에러).
 4. **[§7] `ws-state.<platform>.json` 구현** — Claude(`ws-state.claude.json`)는 ✅ 구현 완료. 잔여: Codex·Antigravity 레지스트리 프로비저닝 및 마스터 템플릿(`ws-state.template.json`) 기반 멀티플랫폼 빌드(§7.4).
 5. **추상 도구 매핑 매트릭스(§3.1) Codex 칸 채우기** — OpenAI Codex 공식 docs로 도구명 검증.
 

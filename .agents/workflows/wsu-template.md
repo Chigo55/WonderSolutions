@@ -17,8 +17,8 @@ Read the argument:
 ## Promote mode
 
 1. Locate the target `work-doc.md`:
-   - If run-id given: `.claude/runs/{run-id}/work-doc.md`
-   - Otherwise: list all directories under `.claude/runs/`, pick the most recently modified one that contains a `work-doc.md`
+   - If run-id given: `.antigravity/runs/{run-id}/work-doc.md`
+   - Otherwise: list all directories under `.antigravity/runs/`, pick the most recently modified one that contains a `work-doc.md`
 2. Invoke **templater** in **template-promote mode** with the full path to that `work-doc.md`.
 3. Templater parses all `[TEMPLATE CANDIDATE]` entries, presents a numbered list, asks the user to select, drafts `{id}.md` files for each selection, shows them for review, and on approval writes them and updates the resolved catalog's `index.json`.
 
@@ -31,7 +31,7 @@ Read the argument:
 ## Edit mode
 
 1. Invoke **templater** in **template-edit mode** with `{id}`.
-2. Templater searches local `.claude/templates/scaffolds/{id}.md` first, then global `${CLAUDE_PLUGIN_ROOT}/templates/scaffolds/{id}.md`. If not found in either, reports "Template '{id}' not found" and stops.
+2. Templater searches local `.antigravity/templates/scaffolds/{id}.md` first, then global `${CLAUDE_PLUGIN_ROOT}/templates/scaffolds/{id}.md`. If not found in either, reports "Template '{id}' not found" and stops.
 3. Templater reads the current `scaffolds/{id}.md`, presents it, asks what to change, applies changes, and on approval writes the updated file and updates `index.json` if metadata changed.
 
 ## Delete mode

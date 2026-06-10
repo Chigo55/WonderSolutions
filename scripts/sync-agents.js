@@ -118,7 +118,26 @@ function getDisplayName(name) {
   return customNames[name] || (name.charAt(0).toUpperCase() + name.slice(1) + ' Agent');
 }
 
-function mapTools(toolsString) {
+// Per-platform resolution of the abstract `${WS_STATE_ROOT}` runtime state root.
+// The canonical source (Claude-native) carries the Claude resolution (`.claude/`)
+// in its bodies; adapters re-resolve it for their target platform.
+const WS_STATE_ROOTS = {
+  antigravity: '.antigravity'
+};
+
+function resolveStatePaths(body, platform) {
+  const stateRoot = WS_STATE_ROOTS[platform];
+  if (!stateRoot) {
+    throw new Error(`Unknown platform "${platform}" — no WS_STATE_ROOT mapping. Add it to WS_STATE_ROOTS.`);
+  }
+  const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1);
+  return body
+    .replace(/ws-state\.claude\.json/g, `ws-state.${platform}.json`)
+    .replace(/\.claude\//g, `${stateRoot}/`)
+    .replace(/\(Claude\)/g, `(${platformLabel})`);
+}
+
+function mapTools(toolsString, sourceLabel) {
   if (!toolsString) return [];
   const tools = toolsString.split(',').map(t => t.trim());
   const mapped = new Set();
@@ -133,13 +152,13 @@ function mapTools(toolsString) {
     'WebSearch': ['search_web'],
     'WebFetch': ['read_url_content']
   };
-  
+
   for (const tool of tools) {
-    if (toolMapping[tool]) {
-      toolMapping[tool].forEach(t => mapped.add(t));
-    } else {
-      mapped.add(tool);
+    const nativeNames = toolMapping[tool];
+    if (!nativeNames) {
+      throw new Error(`Unknown abstract tool "${tool}" in ${sourceLabel || 'unknown source'}. Declare it in the abstract tool set or remove it.`);
     }
+    nativeNames.forEach(t => mapped.add(t));
   }
   return Array.from(mapped);
 }
@@ -178,12 +197,13 @@ function runSync() {
   for (const agentInfo of agentFiles) {
     const { frontmatter, body } = parseFile(agentInfo.filePath);
     const agentName = frontmatter.name || agentInfo.baseName;
-    const description = frontmatter.description || '';
+    const description = resolveStatePaths(frontmatter.description || '', 'antigravity');
     const toolsString = frontmatter.tools || '';
     
-    const mappedTools = mapTools(toolsString);
-    
-    let finalBody = body;
+    const sourceLabel = path.relative(projectRoot, agentInfo.filePath).replace(/\\/g, '/');
+    const mappedTools = mapTools(toolsString, sourceLabel);
+
+    let finalBody = resolveStatePaths(body, 'antigravity');
     if (agentName === 'templater') {
       finalBody = `Note: When running under Antigravity, \`\${CLAUDE_PLUGIN_ROOT}\` resolves to the workspace relative path \`./plugins/wonder-utilities\`.\n\n` + finalBody;
     }
@@ -236,7 +256,7 @@ function runSync() {
   for (const commandInfo of commandFiles) {
     const { frontmatter, body } = parseFile(commandInfo.filePath);
     const commandName = commandInfo.baseName;
-    const description = frontmatter.description || '';
+    const description = resolveStatePaths(frontmatter.description || '', 'antigravity');
     
     const newFrontmatter = {
       name: commandName,
@@ -247,8 +267,8 @@ function runSync() {
     for (const [k, v] of Object.entries(newFrontmatter)) {
       output += `${k}: ${JSON.stringify(v)}\n`;
     }
-    output += '---\n\n' + body.trim() + '\n';
-    
+    output += '---\n\n' + resolveStatePaths(body, 'antigravity').trim() + '\n';
+
     fs.writeFileSync(
       path.join(agentsDestDir, 'workflows', `${commandName}.md`),
       output,
@@ -277,7 +297,7 @@ function runSync() {
   for (const ruleInfo of ruleFiles) {
     const { frontmatter, body } = parseFile(ruleInfo.filePath);
     const ruleName = ruleInfo.baseName;
-    const description = frontmatter.title || frontmatter.description || ruleName;
+    const description = resolveStatePaths(frontmatter.title || frontmatter.description || ruleName, 'antigravity');
     
     const newFrontmatter = {
       description: description,
@@ -289,8 +309,8 @@ function runSync() {
     for (const [k, v] of Object.entries(newFrontmatter)) {
       output += `${k}: ${JSON.stringify(v)}\n`;
     }
-    output += '---\n\n' + body.trim() + '\n';
-    
+    output += '---\n\n' + resolveStatePaths(body, 'antigravity').trim() + '\n';
+
     fs.writeFileSync(
       path.join(agentsDestDir, 'rules', `${ruleName}.md`),
       output,
@@ -324,6 +344,8 @@ if (require.main === module) {
     parseYAML,
     parseFile,
     mapTools,
-    getDisplayName
+    getDisplayName,
+    resolveStatePaths,
+    WS_STATE_ROOTS
   };
 }

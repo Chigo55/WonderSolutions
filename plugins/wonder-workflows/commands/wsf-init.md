@@ -14,7 +14,7 @@ If no flags are provided, auto-detect the project structure and ask the user whi
 
 ## 1. Provision the State Registry (`ws-state.claude.json`)
 
-Before any layer work, provision the platform-isolated feature registry at the **project root**. This file is the Claude-only registry — never read or write another platform's file (`ws-state.codex.json`, `ws-state.antigravity.json`); each platform owns exactly one registry.
+Before any layer work, provision the platform-isolated feature registry at the **project root**. This file belongs to the current platform only — never read or write another platform's `ws-state.<platform>.json`; each platform owns exactly one registry.
 
 ### 1.1 Read the existing file
 
