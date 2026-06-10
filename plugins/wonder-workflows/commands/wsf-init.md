@@ -1,5 +1,5 @@
 ---
-description: Initializes wonder-workflows for a project — reverse-engineers ADRs, generates project-specific rules, and produces HTML reports. Run once per project before using /wsf-run.
+description: Initializes wonder-workflows for a project — provisions the ws-state.claude.json registry, reverse-engineers ADRs, generates project-specific rules, and produces HTML reports. Run once per project before using /wsf-run.
 argument-hint: "[--layers <layer1,layer2...>] — e.g. --layers core-logic,security"
 ---
 
@@ -12,7 +12,83 @@ Initializes wonder-workflows on a new project through three mandatory steps exec
 Read arguments for `--layers` (comma-separated list of active layers, e.g. `--layers core-logic,security`).
 If no flags are provided, auto-detect the project structure and ask the user which active layers to initialize (defaulting to `security`).
 
-## 1–3. For each active layer (sequentially)
+## 1. Provision the State Registry (`ws-state.claude.json`)
+
+Before any layer work, provision the platform-isolated feature registry at the **project root**. This file is the Claude-only registry — never read or write another platform's file (`ws-state.codex.json`, `ws-state.antigravity.json`); each platform owns exactly one registry.
+
+### 1.1 Read the existing file
+
+- **Absent** → build a fresh registry from the scan below (§1.2) and write it.
+- **Valid JSON** → merge: keep every `enabled` flag the user has set; refresh each plugin's `version` and `features` from the scan; add newly detected plugins with their default flag; remove entries whose components are no longer detected (missing-component fallback — never crash on a stale entry).
+- **Invalid JSON** (parse failure) → rename the corrupt file to `ws-state.claude.json.bak` (replacing any older `.bak`), then build a fresh registry from the scan and write it. Tell the user the backup path.
+
+### 1.2 Self-registration scan
+
+Detect which WonderSolutions components are available in the current session:
+
+| Plugin | Detection signal | Registered `features` |
+|---|---|---|
+| `wonder-workflows` (self) | always present | agents: `orchestrator` `analyzer` `researcher` `planner` `developer` `inspector` `modifier` `ruler` · commands: `wsf-run` `wsf-init` `wsf-review` `wsf-rules` · rules: `structure.md` `security.md` `workflow.md` |
+| `wonder-utilities` | `/wsu-template` command or `templater` agent available in this session | agents: `templater` · commands: `wsu-template` · skills: `cave-man` `grill-me` `hand-off` `write-a-skill` · templates: `index.json` `index.schema.json` · requests: `create_request.md` `modify_request.md` · rules: `templates.md` |
+| `wonder-plugins` | any companion component available (superpowers skills · context7 MCP tools · claude-md-management commands · code-simplifier agent) | `companion-plugins` subtree — list **every detected companion** with its own nested `version`/`enabled`/`features` (Transitive Dependency Disclosure Principle). Omit companions that are not present. |
+
+Rules:
+
+- **Versions** — read wonder-workflows' own version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. For other plugins use the installed version when the session exposes it; otherwise write `"unknown"`.
+- **Default flags** — newly added plugins get `enabled: true`, except `wonder-plugins` which defaults to `enabled: false` (companion binding is opt-in).
+- **Forced core override** — `plugins."wonder-workflows".enabled` is always written as `true`. If the existing file says `false`, correct it and tell the user.
+- **Custom-entry restriction** — drop any entry that is not an official WonderSolutions plugin or a detected companion (no user-added custom features or external scripts), and report what was dropped.
+
+### 1.3 Fresh registry shape
+
+When building from scratch, follow this shape (omit the `wonder-utilities` / `wonder-plugins` blocks entirely when not detected):
+
+```json
+{
+  "project": "{project name} (Claude)",
+  "version": "1.0.0",
+  "plugins": {
+    "wonder-workflows": {
+      "version": "{from plugin.json}",
+      "enabled": true,
+      "features": {
+        "agents": ["orchestrator", "analyzer", "researcher", "planner", "developer", "inspector", "modifier", "ruler"],
+        "commands": ["wsf-run", "wsf-init", "wsf-review", "wsf-rules"],
+        "rules": ["structure.md", "security.md", "workflow.md"]
+      }
+    },
+    "wonder-utilities": {
+      "version": "{installed or unknown}",
+      "enabled": true,
+      "features": {
+        "agents": ["templater"],
+        "commands": ["wsu-template"],
+        "skills": ["cave-man", "grill-me", "hand-off", "write-a-skill"],
+        "templates": ["index.json", "index.schema.json"],
+        "requests": ["create_request.md", "modify_request.md"],
+        "rules": ["templates.md"]
+      }
+    },
+    "wonder-plugins": {
+      "version": "{installed or unknown}",
+      "enabled": false,
+      "features": {
+        "companion-plugins": {
+          "{detected companion name}": {
+            "version": "{installed or unknown}",
+            "enabled": true,
+            "features": { "agents": ["..."], "commands": ["..."], "skills": ["..."] }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+After writing, report one line: `ws-state.claude.json provisioned — wonder-utilities: {detected|absent} · wonder-plugins: {detected|absent}`.
+
+## 2–4. For each active layer (sequentially)
 
 Process layers one at a time. For each layer:
 
@@ -91,7 +167,7 @@ The report is a user-facing document and **must be written entirely in Korean** 
 </html>
 ```
 
-## 4. Result Report
+## 5. Result Report
 
 After all active layers are processed, output:
 
@@ -99,6 +175,7 @@ After all active layers are processed, output:
 wsf-init complete.
 
 Generated:
+  ✓ ws-state.claude.json — state registry (wonder-utilities: {detected|absent} · wonder-plugins: {detected|absent})
   ✓ {layer-name-1} — .claude/adr/{layer-name-1}.md, .claude/rules/{layer-name-1}.md, .claude/reports/wsf-init-{layer-name-1}-YYYYMMDD-HHMMSS.html
   ✓ {layer-name-2} — ...
   ...

@@ -221,7 +221,7 @@ graph TD
 
 ## 7. 플랫폼별 중앙 설정 격리 아키텍처 (Platform-Specific Configuration Isolation Architecture)
 
-> 🚧 **로드맵 (미구현):** 본 섹션의 `ws-state.<platform>.json` 레지스트리는 현재 코드베이스에 **존재하지 않습니다.** 확정된 목표 설계로서 기술하며, 실제 구현 시 **init타임 프로비저닝 단계**(예: `wsf-init`)로 생성·병합됩니다. 핵심은 **런타임 인터셉트가 아니라는 점**입니다 — 에이전트는 이 파일을 *읽기용 컨텍스트*로 참조할 뿐, 호스트의 도구 디스패치에 끼어들지 않습니다.
+> **구현 상태:** Claude는 ✅ 구현됨 — `/wsf-init`이 `ws-state.claude.json`을 init타임에 프로비저닝하고(자가등록·병합), `/wsf-run`·orchestrator가 읽기 전용 바인딩 + §7.3 자가치유를 수행합니다. Codex·Antigravity 레지스트리는 🚧 로드맵입니다. 핵심은 **런타임 인터셉트가 아니라는 점**입니다 — 에이전트는 이 파일을 *읽기용 컨텍스트*로 참조할 뿐, 호스트의 도구 디스패치에 끼어들지 않습니다.
 
 분리된 플러그인들 간의 호환성을 격리하고 다중 플랫폼 혼용 시 발생할 수 있는 상태 경쟁(Race Condition)을 완전히 방지하기 위해, 시스템은 프로젝트 루트 디렉토리에 **플랫폼 전용 중앙 설정 파일(`ws-state.<platform>.json`)**을 분리하여 생성하고 사용합니다.
 
@@ -402,6 +402,7 @@ WonderSolutions는 **정식 소스(Claude 네이티브 플러그인 포맷)**와
 * 6단계 파이프라인 상태 머신 (Claude·Antigravity 위임형, Codex 인라인).
 * 3-플러그인 분리 모델 및 독립 버전 관리.
 * 추상 도구 정적 매핑 (`mapTools()` — Antigravity).
+* `ws-state.claude.json` 레지스트리 (Claude) — `/wsf-init` init타임 프로비저닝(자가등록·병합), `/wsf-run`·orchestrator 읽기 전용 바인딩, §7.3 자가치유 정책.
 
 ### 8.2. 확정된 로드맵 및 정정 대상 (🚧 Roadmap / ⚠️ Gap)
 본 개정에서 설계로 확정되었으나 아직 코드에 반영되지 않은 항목입니다. 우선순위 순:
@@ -409,7 +410,7 @@ WonderSolutions는 **정식 소스(Claude 네이티브 플러그인 포맷)**와
 1. **[Q4·Q3] Codex 위임형 승격 + 드리프트 해소** — `sync:codex` 어댑터를 작성해 정식 소스에서 Codex 산출물(skill) 및 `.codex/agents/*.toml` 서브에이전트 정의를 생성. 수작업 Codex 레이어를 생성형으로 전환.
 2. **[Q6] 경로 변수 치환** — `sync-agents.js`가 본문의 `${WS_STATE_ROOT}`를 플랫폼별 경로로 치환하도록 수정 (현재 `.claude/` 경로 누수 제거). 정식 소스 본문을 `${WS_STATE_ROOT}` 기반으로 일괄 변경.
 3. **[Q5] 미지의 도구 fail-fast** — `mapTools()`의 silent passthrough를 빌드타임 에러로 전환.
-4. **[§7] `ws-state.<platform>.json` 구현** — init타임 프로비저닝(`wsf-init`), 자가등록·피처플래그 토글·자가치유(§7.3) 구현.
+4. **[§7] `ws-state.<platform>.json` 구현** — Claude(`ws-state.claude.json`)는 ✅ 구현 완료. 잔여: Codex·Antigravity 레지스트리 프로비저닝 및 마스터 템플릿(`ws-state.template.json`) 기반 멀티플랫폼 빌드(§7.4).
 5. **추상 도구 매핑 매트릭스(§3.1) Codex 칸 채우기** — OpenAI Codex 공식 docs로 도구명 검증.
 
 > 요약: 본 문서는 *목표 아키텍처*를 정의하며, §8.1과 §8.2의 구분을 통해 설계와 구현 현황을 정직하게 분리합니다. "✅/🚧/⚠️" 표기가 갱신되는 시점이 곧 구현 진척의 추적 지표입니다.

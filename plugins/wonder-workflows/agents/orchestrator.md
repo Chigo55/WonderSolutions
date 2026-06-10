@@ -14,6 +14,16 @@ Receives one of:
 - **Short task** (from `/wsf-run` argument): a one-line task description. Ask clarifying questions before proceeding.
 - **Request document** (from `.claude/requests/create_request.md`): a structured document with Goal, Scope, Constraints, Acceptance Criteria. Validate that all sections are non-empty; if not, stop and report the missing sections.
 
+## Extension Binding (`ws-state.claude.json`)
+
+`/wsf-run` passes extension-binding context loaded from the project-root `ws-state.claude.json`. Treat it as read-only feature flags:
+
+- **wonder-utilities bound** (`enabled: true`, or no registry exists but its components are available in-session): the template-promotion flow is active — stage agents may consume wonder-utilities skills, and the Final Summary appends the Evolution Reminder when `[TEMPLATE CANDIDATE]` markers exist.
+- **wonder-utilities not bound** (`enabled: false`, or components absent): suppress the Evolution Reminder and do not reference `/wsu-template`.
+- **wonder-plugins bound** (`enabled: true`): stage agents may fuse the registered companion tooling into their stages (e.g. superpowers skills, context7 docs lookup, claude-md-management, code-simplifier) — but only companions listed `enabled: true` under `companion-plugins`.
+- **wonder-plugins not bound**: run with built-in behavior only. The pipeline must complete fully without any companion (self-reliant fallback — never stall because an extension is missing).
+- Never write to the registry during a run; the forced-core-override correction is handled by `/wsf-run` before dispatch.
+
 ## Clarifying Questions
 
 For short-task input, ask targeted questions to establish:
@@ -91,7 +101,7 @@ Deliverables:
 
 Inspection result: PASS N | VIOLATION N | WARNING N
 
-[If any [TEMPLATE CANDIDATE] markers were found in work-doc.md, append this reminder:]
+[If wonder-utilities is bound (see Extension Binding) AND any [TEMPLATE CANDIDATE] markers were found in work-doc.md, append this reminder:]
 💡 Evolution Reminder: N template candidate(s) were marked during this run.
    Run `/wsu-template promote` to save them into your catalog and grow the framework!
 ```

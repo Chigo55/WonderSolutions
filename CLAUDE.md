@@ -73,6 +73,12 @@ Each plugin is independently versioned. When changing a plugin's version, edit b
 
 Commit order: `fix/feat:` commit → separate `chore: bump version to x.x.x` commit
 
+## State Registry (`ws-state.<platform>.json`)
+
+- `/wsf-init` provisions a platform-isolated feature registry `ws-state.claude.json` at the **target project root** (design: `docs/system-design.md` §7). `/wsf-run` reads it as read-only extension-binding context.
+- Self-healing policy (§7.3): invalid JSON → backup to `.bak` + regenerate; `wonder-workflows.enabled` is always forced `true`; entries whose components are missing are pruned, never crashed on.
+- Each platform owns exactly one registry file (`ws-state.claude.json` · `ws-state.codex.json` · …) — never cross-read or cross-write between platforms. Codex/Antigravity registries are roadmap (§8.2).
+
 ## Development Rules
 
 - All plugin paths must be relative paths starting with `./`

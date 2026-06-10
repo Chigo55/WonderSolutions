@@ -34,6 +34,7 @@ The core 6-stage pipeline plugin.
 - **Commands**: `/wsf-run` · `/wsf-init` · `/wsf-review` · `/wsf-rules`
 - **Agents**: orchestrator · analyzer · researcher · planner · developer · inspector · modifier · ruler (rule modes: adr-extract · generate · amend · audit)
 - **Init reports**: `.claude/reports/wsf-init-{layer}-{timestamp}.html`
+- **State registry**: `ws-state.claude.json` (project root) — feature-flag registry provisioned by `/wsf-init`, bound read-only by `/wsf-run`
 
 ### wonder-utilities
 
@@ -120,7 +121,7 @@ codex plugin add github@openai-curated
 
 | Command | Plugin | Description |
 |---------|--------|-------------|
-| `/wsf-init` | wonder-workflows | Project initialization — layer ADR reverse-engineering + HTML reports |
+| `/wsf-init` | wonder-workflows | Project initialization — ws-state.claude.json registry provisioning + layer ADR reverse-engineering + HTML reports |
 | `/wsf-run` | wonder-workflows | Single entry point for the 6-stage pipeline |
 | `/wsf-review` | wonder-workflows | Standalone code review via the inspector agent |
 | `/wsf-rules` | wonder-workflows | Rule amendment (amend) or audit (audit) via the ruler agent |
