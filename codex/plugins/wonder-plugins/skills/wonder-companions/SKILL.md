@@ -5,14 +5,39 @@ description: Explain how the Claude-only WonderSolutions companion bundle maps t
 
 # Wonder Companions
 
-`wonder-plugins` is a Claude dependency aggregator. In Codex, do not try to install Claude companion plugins as Codex plugins.
+`wonder-plugins` is a Claude dependency aggregator. In Codex, do not try to install Claude companion plugins as Codex plugin dependencies.
 
-## Codex Mapping
+## Selected Codex Plugins
+
+Use these optional Codex plugins from the `openai-curated` marketplace when the user wants companion capabilities:
+
+| Codex plugin | Use for | Claude companion coverage |
+| --- | --- | --- |
+| `superpowers@openai-curated` | brainstorming, planning, TDD, debugging, code-review workflows | Direct Codex selection for `superpowers`. |
+| `codex-security@openai-curated` | repository security scans, threat modeling, finding validation | Security-focused review coverage for risk-sensitive cleanup. |
+| `coderabbit@openai-curated` | AI review of current diffs and follow-up fix cycles | Review support around simplification and cleanup. |
+| `github@openai-curated` | PRs, issues, CI debugging, and publishing flows | Delivery integration around review and workflow handoff. |
+
+Install only the plugins needed for the current workspace:
+
+```powershell
+codex plugin add superpowers@openai-curated
+codex plugin add codex-security@openai-curated
+codex plugin add coderabbit@openai-curated
+codex plugin add github@openai-curated
+```
+
+## No Direct Codex Selection
+
+- `context7`: no direct curated Codex plugin selection. Use official docs, web research, configured MCP servers, or a domain-specific Codex plugin such as `vercel`, `cloudflare`, `supabase`, or `expo` when the project matches.
+- `claude-md-management`: Claude-specific. In Codex, inspect `AGENTS.md`, `CLAUDE.md`, and repository docs directly while preserving Claude behavior.
+- `code-simplifier`: no exact curated Codex plugin selection. Use Codex refactoring with project tests, then use `superpowers` or `coderabbit` when an additional review workflow is useful.
+
+## Local Wonder Mapping
 
 - For structured workflows, use `wonder-workflows` skills.
 - For reusable templates and handoffs, use `wonder-utilities` skills.
-- For current library documentation, use official docs or configured MCP servers available in the Codex environment.
-- For CLAUDE.md review, inspect repository docs directly and preserve Claude behavior.
+- For current library documentation, prefer official docs or configured MCP servers available in the Codex environment.
 - For simplification or cleanup, use normal Codex refactoring with project tests.
 
 ## Safety Rule

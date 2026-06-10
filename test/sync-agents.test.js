@@ -31,13 +31,12 @@ test('mapTools maps Claude tools to Antigravity tools', () => {
   }
 });
 
-test('mapTools handles MCP tools', () => {
-  const claudeTools = 'Read, mcp__plugin_context7_context7__query-docs';
+test('mapTools passes through unrecognized tools', () => {
+  const claudeTools = 'Read, unrecognized-tool';
   const mapped = mapTools(claudeTools);
   
   assert.ok(mapped.includes('view_file'));
-  assert.ok(mapped.includes('context7/query-docs'));
-  assert.ok(mapped.includes('mcp__plugin_context7_context7__query-docs'));
+  assert.ok(mapped.includes('unrecognized-tool'));
 });
 
 test('parseYAML parses simple and block scalar yaml', () => {

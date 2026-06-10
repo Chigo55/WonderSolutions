@@ -137,10 +137,6 @@ function mapTools(toolsString) {
   for (const tool of tools) {
     if (toolMapping[tool]) {
       toolMapping[tool].forEach(t => mapped.add(t));
-    } else if (tool.startsWith('mcp__plugin_context7_context7__')) {
-      const actualTool = tool.replace('mcp__plugin_context7_context7__', 'context7/');
-      mapped.add(actualTool);
-      mapped.add(tool);
     } else {
       mapped.add(tool);
     }

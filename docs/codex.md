@@ -24,6 +24,26 @@ codex plugin add wonder-plugins@wonder-solutions
 
 Start a new Codex thread after installing so skills are discovered.
 
+## Optional Codex Companion Plugins
+
+`wonder-plugins` does not install Claude dependencies in Codex. For companion capabilities, use installable plugins from the Codex `openai-curated` marketplace when they fit the workspace:
+
+| Codex plugin | Use for |
+|--------------|---------|
+| `superpowers@openai-curated` | brainstorming, planning, TDD, debugging, and code-review workflows |
+| `codex-security@openai-curated` | security scans, threat modeling, and finding validation |
+| `coderabbit@openai-curated` | AI review of current diffs and follow-up fix cycles |
+| `github@openai-curated` | PRs, issues, CI debugging, and publishing flows |
+
+```powershell
+codex plugin add superpowers@openai-curated
+codex plugin add codex-security@openai-curated
+codex plugin add coderabbit@openai-curated
+codex plugin add github@openai-curated
+```
+
+There is no direct curated Codex selection for `context7`, `claude-md-management`, or `code-simplifier`. Use official docs, configured MCP servers, direct repository document review, Codex refactoring, and project tests for those roles.
+
 ## Main Codex Skills
 
 - `$wonder-pipeline`: run the 6-stage development workflow.

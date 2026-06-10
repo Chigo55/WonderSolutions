@@ -56,6 +56,8 @@ A dependency-aggregator plugin with no commands, agents, hooks, or skills of its
 | `code-simplifier` | code simplification and cleanup |
 
 > wonder-workflows and wonder-utilities do **not** hard-depend on these. Install wonder-plugins only if you want the full companion set.
+>
+> In Codex, `wonder-plugins` documents selected Codex companion plugins and fallbacks instead of installing Claude plugin dependencies.
 
 ---
 
@@ -102,6 +104,15 @@ codex plugin add wonder-plugins@wonder-solutions
 ```
 
 See [`docs/codex.md`](docs/codex.md) for skill names and safety rules.
+
+Optional Codex companions selected from the `openai-curated` marketplace:
+
+```bash
+codex plugin add superpowers@openai-curated
+codex plugin add codex-security@openai-curated
+codex plugin add coderabbit@openai-curated
+codex plugin add github@openai-curated
+```
 
 ---
 

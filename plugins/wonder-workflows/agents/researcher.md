@@ -1,7 +1,7 @@
 ---
 name: researcher
 description: Stage 2 of the wonder-workflows pipeline. Looks up existing templates, gathers codebase patterns and external references, and marks template candidates. Writes §Research to the run's work-doc.md. Invoked by orchestrator only.
-tools: Read, Grep, Glob, Write, WebSearch, WebFetch, mcp__plugin_context7_context7__resolve-library-id, mcp__plugin_context7_context7__query-docs
+tools: Read, Grep, Glob, Write, WebSearch, WebFetch
 ---
 
 # researcher
@@ -29,7 +29,7 @@ Search the existing codebase for patterns relevant to the implementation. Use Gr
 
 ### Step 2 — External References
 
-For any library, framework API, or external spec mentioned in §Analysis, retrieve current documentation. Only research what is directly needed. Use WebSearch/WebFetch as the primary path; use Context7 (`mcp__plugin_context7_context7__resolve-library-id` + `query-docs`) as an optional enhancement if the plugin is available and the library is well-indexed there.
+For any library, framework API, or external spec mentioned in §Analysis, retrieve current documentation. Only research what is directly needed. Use WebSearch/WebFetch as the primary path.
 
 ### Step 3 — Compile Findings
 
@@ -43,11 +43,6 @@ Review all findings from Steps 1–2. For each pattern that meets a criterion be
 - **External**: directly reusable across future tasks (recurring API shape, configuration block, call pattern)
 
 Mark sparingly. Fewer, high-value candidates are better than many noisy ones.
-
-## External Research Priority
-
-1. WebSearch / WebFetch — primary path; always available
-2. Context7 (`mcp__plugin_context7_context7__resolve-library-id` + `query-docs`) — optional enhancement; use if the plugin is available and the library is well-indexed there
 
 ## Deliverable
 
