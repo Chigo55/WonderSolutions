@@ -2,12 +2,16 @@
 
 WonderSolutions includes a Codex compatibility layer alongside the existing Claude Code marketplace. The Codex layer is additive: it does not rename, move, or modify Claude manifests, commands, agents, rules, or skills.
 
+> **Generated layer — do not edit by hand.** Everything under `codex/plugins/` is transpiled from the canonical `plugins/` source by `npm run sync:codex` (`scripts/sync-codex.js`). Change the canonical source, then re-run the sync.
+
 ## What Codex Uses
 
 - `.agents/plugins/marketplace.json` is the repo-local Codex marketplace.
-- `codex/plugins/*/.codex-plugin/plugin.json` are Codex plugin manifests.
-- `codex/plugins/*/skills/` contains Codex skills.
-- `.codex/wonder/` is the default runtime state location for Codex-generated runs, rules, ADRs, templates, reports, and handoffs.
+- `codex/plugins/*/.codex-plugin/plugin.json` are Codex plugin manifests (generated).
+- `codex/plugins/*/skills/` contains Codex skills (generated). Workflow skills bundle subagent role definitions under `agents/*.toml` plus `references/`/`assets/` seeds.
+- `.codex/agents/*.toml` are the project-scoped subagent roles. Provision them once per project by copying a skill's bundled `agents/*.toml` (the skills' "Codex Execution Notes" walk through this); stages are then delegated via `spawn_agent`/`wait_agent`/`close_agent`.
+- `.codex/wonder/` is the default runtime state location for Codex-generated runs, rules, meta-rules, ADRs, templates, reports, and handoffs.
+- `ws-state.codex.json` (project root) is the Codex feature registry — provisioned by `$wonder-init`, read-only binding for `$wonder-pipeline` (isolated from `ws-state.claude.json`).
 
 Claude continues to use `plugins/*/.claude-plugin/`, `plugins/*/commands/`, `plugins/*/agents/`, `plugins/*/rules/`, `plugins/*/skills/`, and `.claude/` paths.
 

@@ -1,15 +1,14 @@
 ---
 name: wonder-grill-me
-description: Interrogate a plan, design, or proposal in Codex until key decisions and risks are clear. Use when the user says grill me, stress-test this plan, challenge this design, or asks for relentless questioning.
+description: Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when user wants to stress-test a plan, get grilled on their design, or mentions "grill me".
 ---
 
-Question the user one decision at a time until the plan is coherent and testable.
+> Generated from `plugins/wonder-utilities/skills/grill-me/SKILL.md` by `npm run sync:codex` — do not edit by hand.
 
-## Process
+Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch
+of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended
+answer.
 
-1. Identify the main objective, constraints, success criteria, and unknowns.
-2. If the answer can be discovered from the repository, inspect the repository instead of asking.
-3. Ask one focused question at a time.
-4. Include your recommended answer with each question.
-5. Track resolved decisions and remaining risks.
-6. Stop when the plan has clear scope, tradeoffs, dependencies, and validation steps.
+Ask the questions one at a time.
+
+If a question can be answered by exploring the codebase, explore the codebase instead.

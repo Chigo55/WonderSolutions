@@ -46,7 +46,7 @@ graph TD
 ### 2.1. 원칙 A. 단일 진실 공급원 (Single Source of Truth)
 * 모든 에이전트 페르소나(`agents/`), 워크플로우 명세(`commands/`), 제약 조건(`rules/`)은 YAML Frontmatter를 포함한 표준 마크다운(Markdown) 포맷으로만 관리합니다.
 * **정식 소스(Canonical Source)는 `plugins/`(Claude 네이티브 플러그인 포맷)이며, 이를 플랫폼 중립 상위집합 교환 포맷(Interchange Superset)으로 취급합니다.** 별도의 중립 포맷을 따로 두지 않고, 가장 표현력이 풍부한 Claude 포맷을 정식 소스로 삼아 타 플랫폼 산출물을 *여기서 생성*합니다. (✅ 현재 `sync-agents.js`·`npm run validate` 모두 `plugins/`를 기준으로 동작)
-* 사양의 변경은 오직 이 정식 소스에서만 발생해야 하며, 타 플랫폼 산출물(`.agents/`, `codex/plugins/` 등)은 직접 손으로 수정하지 않고 **빌드타임 생성으로만 갱신**합니다. (⚠️ 현재 Codex 레이어는 수작업 유지 중 — 정식 소스 생성으로 전환 필요. [Q3 갭])
+* 사양의 변경은 오직 이 정식 소스에서만 발생해야 하며, 타 플랫폼 산출물(`.agents/`, `codex/plugins/` 등)은 직접 손으로 수정하지 않고 **빌드타임 생성으로만 갱신**합니다. (✅ [Q3 해소] Codex 레이어는 `npm run sync:codex`(`scripts/sync-codex.js`)로 정식 소스에서 생성됨)
 
 ### 2.2. 원칙 B. 빌드타임 어댑터 인터페이스 (Build-time Adapter Interface)
 * 각 플랫폼 어댑터는 정식 소스를 읽어 해당 호스트의 네이티브 포맷으로 *생성(transpile)*하는 빌드타임 인터페이스를 구현합니다. (✅ Antigravity: `scripts/sync-agents.js`)
@@ -67,7 +67,7 @@ graph TD
   | :--- | :--- | :--- |
   | Claude | `.claude` | ✅ 현행 (`.claude/runs/`, `.claude/adr/`, `.claude/rules/`, `.claude/requests/`) |
   | Codex | `.codex/wonder` | ✅ 현행 (`.codex/wonder/runs/{run-id}/`) |
-  | Antigravity | `.antigravity` | 🚧 기본 가정값. 리터럴은 버전 민감 → 어댑터가 hook 페이로드의 `artifactDirectoryPath`로 동적 확인 |
+  | Antigravity | `.antigravity` | ✅ 현행 (`resolveStatePaths()` 정적 기본값. 리터럴은 버전 민감 → 추후 hook 페이로드의 `artifactDirectoryPath`로 동적 확인 여지) |
 
   > ✅ [Q6 해소] `sync-agents.js`의 `resolveStatePaths()`가 본문·frontmatter description의 상태 루트 접두사(`.claude/` → `.antigravity/`)와 레지스트리 파일명(`ws-state.claude.json` → `ws-state.antigravity.json`)을 치환합니다. `.claude-plugin/`·`${CLAUDE_PLUGIN_ROOT}`·`ws-state.<platform>.json` 자리표시자는 보존됩니다.
 
@@ -97,19 +97,19 @@ graph TD
 
 각 빌드타임 어댑터는 위 추상 도구를 호스트의 실제 도구명으로 정적 매핑합니다. Claude는 추상명이 곧 네이티브명이므로 1:1입니다.
 
-| 추상 도구 | Claude (네이티브) | Antigravity (✅ `mapTools()`) | Codex |
+| 추상 도구 | Claude (네이티브) | Antigravity (✅ `mapTools()`) | Codex (✅ 검증됨 — 2026-06-11, developers.openai.com/codex · openai/codex 소스) |
 | :--- | :--- | :--- | :--- |
-| **Read** | `Read` | `view_file` | 🚧 docs 검증 필요 |
-| **Grep** | `Grep` | `grep_search` | 🚧 docs 검증 필요 |
-| **Glob** | `Glob` | `list_dir` | 🚧 docs 검증 필요 |
-| **Write** | `Write` | `write_to_file` | 🚧 docs 검증 필요 |
-| **Edit** | `Edit` | `replace_file_content` / `multi_replace_file_content` | 🚧 docs 검증 필요 |
-| **Bash** | `Bash` | `run_command` | 🚧 docs 검증 필요 |
-| **Agent** | `Agent` | `invoke_subagent` / `define_subagent` | `spawn_agent` (+ `wait_agent` / `close_agent`) ✅ 검증됨 |
-| **WebSearch** | `WebSearch` | `search_web` | 🚧 docs 검증 필요 |
-| **WebFetch** | `WebFetch` | `read_url_content` | 🚧 docs 검증 필요 |
+| **Read** | `Read` | `view_file` | 전용 도구 없음 — shell 매개 (`cat` / `sed -n`) |
+| **Grep** | `Grep` | `grep_search` | 전용 도구 없음 — shell `rg` |
+| **Glob** | `Glob` | `list_dir` | 전용 도구 없음 — shell `rg --files` / `ls` |
+| **Write** | `Write` | `write_to_file` | `apply_patch` |
+| **Edit** | `Edit` | `replace_file_content` / `multi_replace_file_content` | `apply_patch` |
+| **Bash** | `Bash` | `run_command` | `shell_command` (레거시 `shell`; unified-exec `exec_command`+`write_stdin`) |
+| **Agent** | `Agent` | `invoke_subagent` / `define_subagent` | `spawn_agent` (+ `wait_agent` / `close_agent` / `send_input` 등) |
+| **WebSearch** | `WebSearch` | `search_web` | hosted `web_search` (config `web_search = "live"` \| `"cached"`) |
+| **WebFetch** | `WebFetch` | `read_url_content` | 전용 도구 없음 — cached `web_search` / shell `curl` 매개 |
 
-* **Codex 칸 작성 원칙:** `sync:codex` 어댑터 구현 시 OpenAI Codex 공식 docs로 각 도구명을 검증해 채웁니다. (`Agent`→`spawn_agent`는 검증 완료)
+* **Codex 투영 방식:** Codex 역할 정의(`.codex/agents/*.toml` — `name`·`description`·`developer_instructions`)에는 도구 allowlist 필드가 없으므로, `sync:codex`는 추상 도구 선언을 `developer_instructions`의 "Tool usage on Codex" 지침으로 투영합니다(검증·fail-fast는 동일 적용).
 * **미지의 도구 정책 (Fail-fast):** 위 추상 집합에 없는 도구명이 정식 소스에 등장하면, 어댑터는 그것을 호스트 도구명으로 그대로 통과시키지 않고 **빌드타임에 실패**시킵니다 — `Unknown abstract tool "<name>" in <agent-file>. Declare it in the abstract tool set or remove it.` 와 같은 명확한 메시지를 출력합니다. (원칙 C·§7.2·"fail fast at boundaries" 정합)
 
 ---
@@ -150,10 +150,10 @@ graph TD
 | :--- | :--- | :--- | :--- |
 | **Claude** | 위임형 | `Agent` 도구로 서브에이전트 호출 | ✅ 현행 |
 | **Antigravity** | 위임형 | `invoke_subagent` / `define_subagent` | ✅ 현행 |
-| **Codex** | 위임형 | `spawn_agent` + `.codex/agents/{name}.toml` 역할 정의 (`config.toml [agents]` 동시성 제어; `max_depth` 기본 1로 orchestrator→서브 1단계 충분) | 🚧 로드맵 |
+| **Codex** | 위임형 | `spawn_agent` + `.codex/agents/{name}.toml` 역할 정의 (`config.toml [agents]` 동시성 제어; `max_depth` 기본 1 — orchestrator 역할은 메인 스레드가 수행하고 스테이지 역할만 스폰) | ✅ 현행 (`sync:codex` 생성) |
 | *(서브에이전트 미지원 가상 호스트)* | 단일 에이전트 인라인 폴백 | 7 페르소나를 1개 파이프라인 스킬의 단계 지침으로 융합 | 폴백 폴리시 |
 
-* ⚠️ [Q4 갭] 현재 Codex 레이어는 6단계를 한 대화에서 인라인 실행(`wonder-pipeline` 스킬)합니다. 이는 **Codex의 한계가 아니라 투영 과정의 축소 구현**입니다 — Codex 서브에이전트(`spawn_agent`)는 GA(기본 활성화) 기능입니다. 단, 서브에이전트 역할은 플러그인/스킬이 아니라 `.codex/agents/*.toml` 채널로 선언되므로, 정식 소스 `plugins/*/agents/*.md`에서 이 TOML을 **init타임에 프로비저닝**하는 `sync:codex` 단계가 필요합니다. (🚧 로드맵)
+* ✅ [Q4 해소] Codex 레이어는 위임형으로 승격되었습니다. `sync:codex`가 정식 소스 `plugins/*/agents/*.md`에서 역할 TOML(`name`·`description`·`developer_instructions`)을 생성해 각 스킬에 `agents/*.toml`로 번들하고, 생성된 스킬의 "Codex Execution Notes"가 이를 프로젝트의 `.codex/agents/`로 **init타임 프로비저닝**한 뒤 `spawn_agent`로 위임하도록 지시합니다. Codex 플러그인은 agents 컴포넌트를 직접 번들할 수 없으므로(스킬·MCP·훅·앱만 가능) 스킬 번들 경유가 공식 채널입니다.
 * 인라인 폴백은 *서브에이전트를 지원하지 않는 가상의 미래 호스트*를 위한 이식성 안전망으로만 남깁니다. §4.1 상태 머신 불변이 동일 결과를 보장합니다.
 
 ### 4.3. 파이프라인 라이프사이클 명세
@@ -221,7 +221,7 @@ graph TD
 
 ## 7. 플랫폼별 중앙 설정 격리 아키텍처 (Platform-Specific Configuration Isolation Architecture)
 
-> **구현 상태:** Claude는 ✅ 구현됨 — `/wsf-init`이 `ws-state.claude.json`을 init타임에 프로비저닝하고(자가등록·병합), `/wsf-run`·orchestrator가 읽기 전용 바인딩 + §7.3 자가치유를 수행합니다. Codex·Antigravity 레지스트리는 🚧 로드맵입니다. 핵심은 **런타임 인터셉트가 아니라는 점**입니다 — 에이전트는 이 파일을 *읽기용 컨텍스트*로 참조할 뿐, 호스트의 도구 디스패치에 끼어들지 않습니다.
+> **구현 상태:** Claude는 ✅ 구현됨 — `/wsf-init`이 `ws-state.claude.json`을 init타임에 프로비저닝하고(자가등록·병합), `/wsf-run`·orchestrator가 읽기 전용 바인딩 + §7.3 자가치유를 수행합니다. Codex·Antigravity는 ✅ 투영 경유 — 트랜스파일된 `$wonder-init`(Codex)·`wsf-init` 워크플로우(Antigravity)가 동일 정책으로 `ws-state.codex.json`·`ws-state.antigravity.json`을 프로비저닝합니다(§7.4 마스터 템플릿 기반 정적 빌드는 🚧 로드맵). 핵심은 **런타임 인터셉트가 아니라는 점**입니다 — 에이전트는 이 파일을 *읽기용 컨텍스트*로 참조할 뿐, 호스트의 도구 디스패치에 끼어들지 않습니다.
 
 분리된 플러그인들 간의 호환성을 격리하고 다중 플랫폼 혼용 시 발생할 수 있는 상태 경쟁(Race Condition)을 완전히 방지하기 위해, 시스템은 프로젝트 루트 디렉토리에 **플랫폼 전용 중앙 설정 파일(`ws-state.<platform>.json`)**을 분리하여 생성하고 사용합니다.
 
@@ -398,21 +398,23 @@ graph TD
 WonderSolutions는 **정식 소스(Claude 네이티브 플러그인 포맷)**와 **플랫폼별 빌드타임 어댑터**의 분리, **독립적으로 분리된 세 플러그인 모델**을 통해, 자체 런타임 없이 기존 호스트에 얹히면서도 이식성과 영속성을 확보하는 느슨하게 연결된 아키텍처를 정의합니다.
 
 ### 8.1. 현재 구현됨 (✅ Implemented)
-* 정식 소스 `plugins/`(Claude) 기준 동작 — `sync-agents.js`(Antigravity 생성), `npm run validate`.
-* 6단계 파이프라인 상태 머신 (Claude·Antigravity 위임형, Codex 인라인).
+* 정식 소스 `plugins/`(Claude) 기준 동작 — `sync-agents.js`(Antigravity 생성), `sync-codex.js`(Codex 생성), `npm run validate`.
+* 6단계 파이프라인 상태 머신 (Claude·Antigravity·Codex 모두 위임형).
 * 3-플러그인 분리 모델 및 독립 버전 관리.
 * 추상 도구 정적 매핑 (`mapTools()` — Antigravity).
 * `ws-state.claude.json` 레지스트리 (Claude) — `/wsf-init` init타임 프로비저닝(자가등록·병합), `/wsf-run`·orchestrator 읽기 전용 바인딩, §7.3 자가치유 정책.
 * [Q5] 미지의 도구 fail-fast — `mapTools()`가 추상 집합 밖 도구를 빌드타임 에러로 거부.
-* [Q6] 경로 변수 치환 — `resolveStatePaths()`가 상태 루트(`.claude/`)·레지스트리 파일명을 플랫폼별로 재해석 (Antigravity 산출물의 Claude 경로 누수 제거).
+* [Q6] 경로 변수 치환 — `resolveStatePaths()`(Antigravity)·`resolveCodexBody()`(Codex)가 상태 루트(`.claude/`)·레지스트리 파일명을 플랫폼별로 재해석 (Claude 경로 누수 제거).
+* [Q3·Q4] `sync:codex` 어댑터 — 정식 소스에서 Codex 매니페스트·스킬·역할 TOML을 생성, 위임형 토폴로지(스킬 번들 `agents/*.toml` → `.codex/agents/` init타임 프로비저닝, `spawn_agent` 위임).
+* 추상 도구 매핑 매트릭스(§3.1) Codex 칸 — 공식 docs·소스로 검증 완료.
 
 ### 8.2. 확정된 로드맵 및 정정 대상 (🚧 Roadmap / ⚠️ Gap)
 본 개정에서 설계로 확정되었으나 아직 코드에 반영되지 않은 항목입니다. 우선순위 순:
 
-1. **[Q4·Q3] Codex 위임형 승격 + 드리프트 해소** — `sync:codex` 어댑터를 작성해 정식 소스에서 Codex 산출물(skill) 및 `.codex/agents/*.toml` 서브에이전트 정의를 생성. 수작업 Codex 레이어를 생성형으로 전환.
+1. **[Q4·Q3] Codex 위임형 승격 + 드리프트 해소** — ✅ 구현 완료 (`scripts/sync-codex.js` — 매니페스트·스킬·역할 TOML 생성, 메타규칙/템플릿/요청 시드 번들 동봉).
 2. **[Q6] 경로 변수 치환** — ✅ 구현 완료 (`resolveStatePaths()` — 정식 소스는 Claude 해석값 `.claude/`를 정식 표기로 유지, 어댑터가 재해석. §2.4 정정 참조).
-3. **[Q5] 미지의 도구 fail-fast** — ✅ 구현 완료 (`mapTools()` 빌드타임 에러).
-4. **[§7] `ws-state.<platform>.json` 구현** — Claude(`ws-state.claude.json`)는 ✅ 구현 완료. 잔여: Codex·Antigravity 레지스트리 프로비저닝 및 마스터 템플릿(`ws-state.template.json`) 기반 멀티플랫폼 빌드(§7.4).
-5. **추상 도구 매핑 매트릭스(§3.1) Codex 칸 채우기** — OpenAI Codex 공식 docs로 도구명 검증.
+3. **[Q5] 미지의 도구 fail-fast** — ✅ 구현 완료 (`mapTools()`·`codexToolGuidance()` 빌드타임 에러).
+4. **[§7] `ws-state.<platform>.json` 구현** — Claude는 ✅ 구현 완료, Codex·Antigravity는 ✅ 투영 경유로 프로비저닝 경로 확보(`$wonder-init` / `wsf-init` 워크플로우가 `ws-state.codex.json` / `ws-state.antigravity.json`을 동일 정책으로 생성). 잔여: 마스터 템플릿(`ws-state.template.json`) 기반 정적 멀티플랫폼 빌드(§7.4).
+5. **추상 도구 매핑 매트릭스(§3.1) Codex 칸 채우기** — ✅ 완료 (2026-06-11 공식 docs·`openai/codex` 소스 검증).
 
 > 요약: 본 문서는 *목표 아키텍처*를 정의하며, §8.1과 §8.2의 구분을 통해 설계와 구현 현황을 정직하게 분리합니다. "✅/🚧/⚠️" 표기가 갱신되는 시점이 곧 구현 진척의 추적 지표입니다.

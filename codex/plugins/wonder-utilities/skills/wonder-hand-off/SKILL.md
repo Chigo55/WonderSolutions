@@ -1,30 +1,22 @@
 ---
 name: wonder-hand-off
-description: Create a concise handoff document for another Codex or Claude agent. Use when the user asks for a handoff, session summary, continuation brief, or transfer note.
+description: Compact the current conversation into a handoff document for another agent to pick up.
 ---
 
-Write a handoff document that lets a fresh agent continue the work.
+> Generated from `plugins/wonder-utilities/skills/hand-off/SKILL.md` by `npm run sync:codex` — do not edit by hand.
 
-## Save Path
+Write a handoff document summarising the current conversation so a fresh agent can continue the work.
 
-Use this path order:
+**Save path resolution order:**
+1. If a handoff save path is specified in `CLAUDE.md` → use that path
+2. No path found → save as `handoff-{timestamp}.md` in the OS temp directory
 
-1. User-specified path
-2. `CLAUDE.md` handoff path if one is documented
-3. `.codex/wonder/handoffs/handoff-{YYYYMMDD-HHMMSS}.md`
+Include a "suggested skills" section in the document, which suggests skills that the agent should invoke.
 
-Do not write into `.claude/` unless the user explicitly asks.
+Do not duplicate content already captured in other artifacts (PRDs, plans, ADRs, issues, commits, diffs). Reference them
+by path or URL instead.
 
-## Contents
+Redact any sensitive information, such as API keys, passwords, or personally identifiable information.
 
-Include:
-
-- Current objective
-- Repository and branch state relevant to the work
-- Files changed or important files read
-- Decisions made
-- Commands run and results
-- Remaining tasks and validation gaps
-- Suggested skills for the next agent
-
-Redact secrets, tokens, private keys, credentials, and personal data.
+If the user passed arguments, treat them as a description of what the next session will focus on and tailor the doc
+accordingly.

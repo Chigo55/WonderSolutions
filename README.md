@@ -88,11 +88,12 @@ claude --plugin-dir ./wonder-solutions/plugins/wonder-utilities
 
 ### Codex local usage
 
-Codex uses separate manifests and skills:
+Codex uses separate manifests and skills, **generated from the canonical `plugins/` source** via `npm run sync:codex` (do not hand-edit):
 
 - `.agents/plugins/marketplace.json` - repo-local Codex marketplace
-- `codex/plugins/*/.codex-plugin/plugin.json` - Codex plugin manifests
-- `codex/plugins/*/skills/` - Codex skills
+- `codex/plugins/*/.codex-plugin/plugin.json` - Codex plugin manifests (generated)
+- `codex/plugins/*/skills/` - Codex skills (generated; bundle subagent role TOMLs + seeds)
+- `.codex/agents/*.toml` - project-scoped subagent roles (provisioned from skill bundles)
 - `.codex/wonder/` - default Codex runtime state
 
 From the repository root:

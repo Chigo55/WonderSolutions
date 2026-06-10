@@ -1,52 +1,42 @@
 ---
 name: wonder-review
-description: Run a standalone WonderSolutions code inspection in Codex. Use when the user asks for wsf-review, file review, rule compliance review, security review, or inspection outside a full pipeline.
+description: Re-runs Stage 5 (inspection) on specified files outside a full $wonder-pipeline pipeline. Use to review specific files for quality, security, and project rule compliance. Codex projection of /wsf-review; use when the user asks for wsf-review or $wonder-review.
 ---
 
-# Wonder Review
+> Generated from `plugins/wonder-workflows/commands/wsf-review.md` by `npm run sync:codex` — do not edit by hand.
 
-Review one or more files for quality, security, functional correctness when context is available, and project rule compliance.
+## Codex Execution Notes
 
-## Inputs
+- Runtime state root is `.codex/wonder/`. Treat `.claude/` as a read-only fallback; never write it unless the user explicitly asks.
+- **Role provisioning (once per project):** copy this skill's bundled `agents/*.toml` into the project's `.codex/agents/` (keep existing files).
+- Delegate stages with `spawn_agent` using those roles; collect results with `wait_agent`, then `close_agent`. `[agents] max_depth` defaults to 1, so perform any nested delegation (e.g. modifier → developer) from this thread.
+- Where `${CLAUDE_PLUGIN_ROOT}` appears, it means this plugin's install root.
 
-If file paths are provided, review those files. If not, ask for the target paths. Confirm the review set before performing large reviews.
+# $wonder-review
 
-## Rule Loading
+Standalone inspection of one or more files using the inspector agent.
 
-Load rules in this order:
+## 1. Determine target files
 
-1. `.codex/wonder/rules/*.md`
-2. `.claude/rules/*.md` as read-only fallback
-3. General repository conventions if no project rules exist
+- If an argument is provided: use the listed file paths.
+- If no argument: ask the user which file(s) to review.
+- Confirm the list with the user before proceeding.
 
-Do not write to `.claude/`.
+## 2. Load project rules
 
-## Inspection Dimensions
+Read all `.codex/wonder/rules/*.md` files (e.g. security.md, active structural layers) if they exist. If none exist, warn: "No project rules found. Run $wonder-init first for best results. Proceeding with general guidelines."
 
-- Quality: readability, naming, focused functions, excessive nesting, duplicated logic, hardcoded configuration.
-- Functional correctness: whether implementation satisfies the stated task, plan, tests, or nearby behavior.
-- Security: input validation, injection risks, authorization checks, path handling, sensitive data exposure, unsafe command execution.
-- Rule compliance: naming, layering, state access, dependency direction, and local conventions.
+## 3. Invoke inspector
 
-## Report
+Dispatch the **inspector** agent with:
+- The target file paths
+- The project rules (from `.codex/wonder/rules/`)
+- No §Planning context (skip functional correctness dimension — only quality, security, and project rule compliance apply)
 
-Write `.codex/wonder/reports/wonder-review-{YYYYMMDD-HHMMSS}.md`:
+## 4. Write report
 
-```markdown
-# Wonder Review Report
+Inspector writes the report to `.codex/wonder/reports$wonder-review-{YYYYMMDD-HHMMSS}.md` (not under `runs/` since this is a standalone review).
 
-Generated: {UTC datetime}
+## 5. Present results
 
-## Summary
-
-PASS: N | VIOLATION: N | WARNING: N
-
-## Findings
-
-| # | File | Dimension | Severity | Detail |
-|---|------|-----------|----------|--------|
-
-## Recommendation
-```
-
-Lead the user-facing response with findings, ordered by severity. If no issues are found, say so and list any test gaps.
+Show the inspection summary to the user. If violations are found, suggest running `$wonder-pipeline` for a full pipeline fix cycle.

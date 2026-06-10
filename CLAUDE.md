@@ -15,6 +15,13 @@ npm run validate
 claude --plugin-dir ./plugins/wonder-workflows
 claude --plugin-dir ./plugins/wonder-utilities
 claude --plugin-dir ./plugins/wonder-plugins
+
+# Regenerate platform layers from the canonical plugins/ source (never hand-edit outputs)
+npm run sync:antigravity   # → .agents/
+npm run sync:codex         # → codex/plugins/
+
+# Unit tests for the sync adapters
+npm test
 ```
 
 ## Environment Requirements
@@ -81,6 +88,7 @@ Commit order: `fix/feat:` commit → separate `chore: bump version to x.x.x` com
 
 ## Development Rules
 
+- `plugins/` is the canonical source (Claude-native, interchange superset — `docs/system-design.md`). `.agents/` and `codex/plugins/` are generated; edit the canonical source and re-run `npm run sync:antigravity` / `npm run sync:codex`.
 - All plugin paths must be relative paths starting with `./`
 - No references to files outside the plugin (cache-copy approach)
 - If hooks are added, they must be lightweight JS (Node.js built-ins only — no external dependencies)

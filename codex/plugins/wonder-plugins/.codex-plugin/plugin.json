@@ -10,7 +10,16 @@
   "homepage": "https://github.com/Chigo55/wonder-solutions",
   "repository": "https://github.com/Chigo55/wonder-solutions",
   "license": "MIT",
-  "keywords": ["codex", "companion", "dependencies", "superpowers", "coderabbit", "codex-security", "github", "wonder-solutions"],
+  "keywords": [
+    "codex",
+    "companion",
+    "dependencies",
+    "superpowers",
+    "coderabbit",
+    "codex-security",
+    "github",
+    "wonder-solutions"
+  ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Wonder Companions",
@@ -18,7 +27,9 @@
     "longDescription": "Wonder Companions maps the Claude-only dependency aggregator to Codex. It selects installable Codex companion plugins from the curated marketplace when available and documents fallbacks where no direct Codex plugin exists.",
     "developerName": "InHo Jeong",
     "category": "Productivity",
-    "capabilities": ["Planning"],
+    "capabilities": [
+      "Planning"
+    ],
     "websiteURL": "https://github.com/Chigo55/wonder-solutions",
     "defaultPrompt": [
       "Use $wonder-companions to choose Codex companion plugins."

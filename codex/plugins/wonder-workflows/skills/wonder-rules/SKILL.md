@@ -1,36 +1,37 @@
 ---
 name: wonder-rules
-description: Manage WonderSolutions project rules in Codex. Use for wsf-rules amend, wsf-rules audit, rule amendment, ADR alignment checks, or stale project-rule audits without changing Claude rule files.
+description: On-demand rule management. Use 'amend' to update a project rule, 'audit' to health-check all rules. Codex projection of /wsf-rules; use when the user asks for wsf-rules or $wonder-rules.
 ---
 
-# Wonder Rules
+> Generated from `plugins/wonder-workflows/commands/wsf-rules.md` by `npm run sync:codex` — do not edit by hand.
 
-Manage Codex-side project rules under `.codex/wonder/`.
+## Codex Execution Notes
 
-## Modes
+- Runtime state root is `.codex/wonder/`. Treat `.claude/` as a read-only fallback; never write it unless the user explicitly asks.
+- **Role provisioning (once per project):** copy this skill's bundled `agents/*.toml` into the project's `.codex/agents/` (keep existing files); copy bundled `references/meta-rules/*.md` into `.codex/wonder/meta-rules/`.
+- Delegate stages with `spawn_agent` using those roles; collect results with `wait_agent`, then `close_agent`. `[agents] max_depth` defaults to 1, so perform any nested delegation (e.g. modifier → developer) from this thread.
+- Where `${CLAUDE_PLUGIN_ROOT}` appears, it means this plugin's install root.
 
-Use `amend [layer]` to update a rule. Use `audit` to check all rules. If mode is unclear, show the two modes and ask which one to run.
+# $wonder-rules
 
-## Amend Mode
+## Parse mode
+
+Read the argument:
+- `amend [<layer>]`: rule amendment mode (e.g. amend security, or a custom active layer). If no layer argument is provided, ask the user which active layer to amend.
+- `audit`: rule audit mode.
+- No argument or unrecognized: display usage and stop.
+
+## Amend mode
 
 1. Confirm the target layer.
-2. Read `.codex/wonder/rules/{layer}.md`.
-3. Read `.codex/wonder/adr/{layer}.md` if present.
-4. Ask what should change and why, unless the user already supplied it.
-5. Draft the change and show the before/after summary.
-6. On approval, update the Codex rule and append an amendment entry to the Codex ADR.
+2. Ask the user: "What would you like to change in the `{layer}` rule, and why?"
+3. Invoke **ruler** in **amend mode** with the layer and the user's change description.
+4. Ruler presents the proposed change for user confirmation.
+5. On approval, ruler writes the updated `.codex/wonder/rules/{layer}.md` and appends amendment log to `.codex/wonder/adr/{layer}.md`.
 
-Do not edit `.claude/rules/` or `.claude/adr/`. If only Claude rules exist, offer to create a Codex copy first.
+## Audit mode
 
-## Audit Mode
-
-Read all `.codex/wonder/rules/*.md` and `.codex/wonder/adr/*.md`. Use `.claude/` files only as read-only legacy context.
-
-Check for:
-
-- Internal contradictions
-- ADR conflicts
-- Stale references to files or patterns no longer present
-- Missing security or structural sections
-
-Write `.codex/wonder/reports/wonder-rules-audit-{YYYYMMDD-HHMMSS}.md` and summarize `HEALTHY`, `CONFLICT`, `STALE`, and `MISSING` counts.
+1. Invoke **ruler** in **audit mode**.
+2. Ruler reads all `.codex/wonder/rules/*.md` and `.codex/wonder/adr/*.md`.
+3. Ruler writes `.codex/wonder/reports$wonder-rules-audit-{YYYYMMDD-HHMMSS}.md`.
+4. Present summary to user.
