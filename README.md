@@ -154,7 +154,7 @@ wonder-solutions/  (marketplace repository)
   .claude-plugin/
     marketplace.json             ← marketplace catalog (WonderSolutions)
   plugins/
-    wonder-workflows/            ← pipeline plugin (v0.2.0)
+    wonder-workflows/            ← pipeline plugin (v0.3.0)
       .claude-plugin/plugin.json
       commands/                  ← wsf-init · wsf-run · wsf-review · wsf-rules
       agents/                    ← orchestrator · analyzer · researcher · planner · developer · inspector · modifier · ruler
