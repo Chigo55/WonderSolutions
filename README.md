@@ -16,7 +16,7 @@
 
 ## Overview
 
-**WonderSolutions** is a Claude Code plugin marketplace providing a stack-agnostic, evolutionary 6-stage development orchestration pipeline alongside a skill and template utility layer.
+**WonderSolutions** is a Claude Code plugin marketplace providing a stack-agnostic, evolutionary 6-stage development orchestration pipeline alongside a skill and template utility layer. It also ships an additive Codex compatibility layer that keeps Claude runtime state unchanged.
 
 - **Pipeline** (wonder-workflows): analyzer → researcher → planner → developer → inspector → modifier
 - **Orchestration**: the `orchestrator` agent coordinates stage-to-stage flow
@@ -82,6 +82,26 @@ git clone https://github.com/Chigo55/wonder-solutions.git
 claude --plugin-dir ./wonder-solutions/plugins/wonder-workflows
 claude --plugin-dir ./wonder-solutions/plugins/wonder-utilities
 ```
+
+### Codex local usage
+
+Codex uses separate manifests and skills:
+
+- `.agents/plugins/marketplace.json` - repo-local Codex marketplace
+- `codex/plugins/*/.codex-plugin/plugin.json` - Codex plugin manifests
+- `codex/plugins/*/skills/` - Codex skills
+- `.codex/wonder/` - default Codex runtime state
+
+From the repository root:
+
+```bash
+codex plugin marketplace add .
+codex plugin add wonder-workflows@wonder-solutions
+codex plugin add wonder-utilities@wonder-solutions
+codex plugin add wonder-plugins@wonder-solutions
+```
+
+See [`docs/codex.md`](docs/codex.md) for skill names and safety rules.
 
 ---
 

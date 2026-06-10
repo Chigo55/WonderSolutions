@@ -1,0 +1,29 @@
+{
+  "name": "wonder-workflows",
+  "version": "0.2.0",
+  "description": "Codex-native WonderSolutions 6-stage development workflow: analysis, research, planning, implementation, inspection, and modification.",
+  "author": {
+    "name": "InHo Jeong",
+    "email": "inho.jeong@wonderit.kr",
+    "url": "https://github.com/Chigo55"
+  },
+  "homepage": "https://github.com/Chigo55/wonder-solutions",
+  "repository": "https://github.com/Chigo55/wonder-solutions",
+  "license": "MIT",
+  "keywords": ["codex", "workflow", "pipeline", "planning", "review", "wonder-solutions"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Wonder Workflows",
+    "shortDescription": "Run a structured 6-stage Codex development workflow.",
+    "longDescription": "Wonder Workflows brings the WonderSolutions analysis, research, planning, implementation, inspection, and modification process to Codex while keeping Claude plugin files and runtime state untouched by default.",
+    "developerName": "InHo Jeong",
+    "category": "Productivity",
+    "capabilities": ["Planning", "Write", "Review"],
+    "websiteURL": "https://github.com/Chigo55/wonder-solutions",
+    "defaultPrompt": [
+      "Use $wonder-pipeline to implement this task.",
+      "Use $wonder-review to inspect these files.",
+      "Use $wonder-init to initialize project rules."
+    ]
+  }
+}
