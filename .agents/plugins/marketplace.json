@@ -1,0 +1,44 @@
+{
+  "name": "wonder-solutions",
+  "interface": {
+    "displayName": "WonderSolutions"
+  },
+  "plugins": [
+    {
+      "name": "wonder-workflows",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/wonder-workflows"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "wonder-utilities",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/wonder-utilities"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "wonder-plugins",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/wonder-plugins"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

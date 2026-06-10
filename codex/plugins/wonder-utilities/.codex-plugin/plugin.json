@@ -1,0 +1,29 @@
+{
+  "name": "wonder-utilities",
+  "version": "0.2.0",
+  "description": "Codex-native WonderSolutions utility skills for templates, handoffs, concise responses, plan interrogation, and skill authoring.",
+  "author": {
+    "name": "InHo Jeong",
+    "email": "inho.jeong@wonderit.kr",
+    "url": "https://github.com/Chigo55"
+  },
+  "homepage": "https://github.com/Chigo55/wonder-solutions",
+  "repository": "https://github.com/Chigo55/wonder-solutions",
+  "license": "MIT",
+  "keywords": ["codex", "utilities", "skills", "templates", "handoff", "wonder-solutions"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Wonder Utilities",
+    "shortDescription": "Template and workflow helper skills for Codex.",
+    "longDescription": "Wonder Utilities exposes Codex-safe versions of the WonderSolutions utility skills. Runtime artifacts default to .codex/wonder so Claude template and request state is not changed unless explicitly requested.",
+    "developerName": "InHo Jeong",
+    "category": "Productivity",
+    "capabilities": ["Write", "Planning"],
+    "websiteURL": "https://github.com/Chigo55/wonder-solutions",
+    "defaultPrompt": [
+      "Use $wonder-template to add a reusable template.",
+      "Use $wonder-hand-off to summarize this session.",
+      "Use $wonder-grill-me to stress-test this plan."
+    ]
+  }
+}
