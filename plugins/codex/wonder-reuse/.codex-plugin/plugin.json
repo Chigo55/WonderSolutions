@@ -1,0 +1,6 @@
+{
+  "description": "Manage reusable assets and generated output.",
+  "name": "wonder-reuse",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

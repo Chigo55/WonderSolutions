@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "discover-companions",
+  "title": "Discover Companions",
+  "kind": "workflow",
+  "description": "Recommend companion tools without installing them or claiming availability.",
+  "requires": ["read", "search", "write", "ask-user", "report", "manage-state"]
+}

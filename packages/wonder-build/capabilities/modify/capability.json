@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "modify",
+  "title": "Modify Artifact",
+  "kind": "workflow",
+  "description": "Modify an existing project artifact or behavior while preserving unrelated user work.",
+  "requires": [
+    "read",
+    "search",
+    "write",
+    "edit",
+    "run-command",
+    "ask-user",
+    "report",
+    "manage-state"
+  ]
+}

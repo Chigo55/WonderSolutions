@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "review",
+  "title": "Review Work",
+  "kind": "workflow",
+  "description": "Review existing work and report findings without modifying project files.",
+  "requires": ["read", "search", "write", "run-command", "ask-user", "report", "manage-state"]
+}

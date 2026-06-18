@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "wonder-govern",
+  "displayName": "Wonder Govern",
+  "version": "0.1.0",
+  "userJob": "Govern",
+  "description": "Manage project standards and policy checks.",
+  "capabilityOrder": ["init", "define-standards", "check-policy"]
+}

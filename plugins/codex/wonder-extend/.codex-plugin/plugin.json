@@ -1,0 +1,6 @@
+{
+  "description": "Discover companion tools and external capabilities.",
+  "name": "wonder-extend",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

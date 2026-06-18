@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "configure-integration",
+  "title": "Configure Integration",
+  "kind": "workflow",
+  "description": "Record non-secret external integration metadata.",
+  "requires": ["read", "write", "ask-user", "report", "manage-state"]
+}

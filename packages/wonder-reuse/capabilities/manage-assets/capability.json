@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "manage-assets",
+  "title": "Manage Assets",
+  "kind": "workflow",
+  "description": "Create, update, organize, move, and explicitly delete reusable assets.",
+  "requires": ["read", "search", "write", "edit", "ask-user", "report", "manage-state"]
+}

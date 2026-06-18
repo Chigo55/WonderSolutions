@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "check-policy",
+  "title": "Check Policy",
+  "kind": "workflow",
+  "description": "Evaluate project or change compliance against Wonder Govern standards.",
+  "requires": ["read", "search", "write", "run-command", "ask-user", "report", "manage-state"]
+}

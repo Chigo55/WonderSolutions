@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "generate-output",
+  "title": "Generate Output",
+  "kind": "workflow",
+  "description": "Render a reusable asset into concrete output.",
+  "requires": ["read", "search", "write", "ask-user", "report", "manage-state"]
+}

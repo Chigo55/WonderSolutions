@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "platform": "claude",
+  "surfaceNameRule": "claude-command",
+  "outputs": [
+    {
+      "kind": "marketplace",
+      "scope": "repository",
+      "path": ".claude-plugin/marketplace.json",
+      "template": "marketplace.json.hbs",
+      "textKind": "json",
+      "header": "none"
+    },
+    {
+      "kind": "plugin-manifest",
+      "scope": "package",
+      "path": "plugins/claude/{{package.id}}/.claude-plugin/plugin.json",
+      "template": "plugin.json.hbs",
+      "textKind": "json",
+      "header": "none"
+    },
+    {
+      "kind": "plugin-skill",
+      "scope": "capability",
+      "path": "plugins/claude/{{package.id}}/skills/{{capability.id}}/SKILL.md",
+      "template": "skill.md.hbs",
+      "textKind": "markdown",
+      "header": "html-comment"
+    }
+  ]
+}

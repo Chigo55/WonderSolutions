@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "create",
+  "title": "Create Artifact",
+  "kind": "workflow",
+  "description": "Create a new primary project artifact or capability from a user request.",
+  "requires": [
+    "read",
+    "search",
+    "write",
+    "edit",
+    "run-command",
+    "ask-user",
+    "report",
+    "manage-state"
+  ]
+}

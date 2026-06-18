@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "companions": [
+    {
+      "id": "local-helper",
+      "displayName": "Local Helper",
+      "sourceType": "companion",
+      "purpose": "Strengthen local coding workflows with repository-aware guidance.",
+      "platforms": ["claude", "codex", "antigravity"],
+      "tags": ["local", "coding", "review"],
+      "capabilityHints": ["review.assistant.suggest"]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "define-standards",
+  "title": "Define Standards",
+  "kind": "workflow",
+  "description": "Create and maintain project-specific standards.",
+  "requires": ["read", "search", "write", "edit", "ask-user", "report", "manage-state"]
+}

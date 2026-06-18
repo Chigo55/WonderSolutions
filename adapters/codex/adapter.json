@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "platform": "codex",
+  "surfaceNameRule": "codex-skill",
+  "outputs": [
+    {
+      "kind": "marketplace",
+      "scope": "repository",
+      "path": ".agents/plugins/marketplace.json",
+      "template": "marketplace.json.hbs",
+      "textKind": "json",
+      "header": "none"
+    },
+    {
+      "kind": "plugin-manifest",
+      "scope": "package",
+      "path": "plugins/codex/{{package.id}}/.codex-plugin/plugin.json",
+      "template": "plugin.json.hbs",
+      "textKind": "json",
+      "header": "none"
+    },
+    {
+      "kind": "plugin-skill",
+      "scope": "capability",
+      "path": "plugins/codex/{{package.id}}/skills/{{package.id}}-{{capability.id}}/SKILL.md",
+      "template": "skill.md.hbs",
+      "textKind": "markdown",
+      "header": "html-comment"
+    },
+    {
+      "kind": "repo-skill",
+      "scope": "capability",
+      "path": ".agents/skills/{{package.id}}-{{capability.id}}/SKILL.md",
+      "template": "skill.md.hbs",
+      "textKind": "markdown",
+      "header": "html-comment"
+    }
+  ]
+}

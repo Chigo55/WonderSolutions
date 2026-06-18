@@ -1,0 +1,48 @@
+# Initialize Build
+
+Prepare the current project to use Wonder Build capabilities.
+
+## Procedure
+
+scope
+
+- Resolve the current project root.
+- Resolve the current execution surface.
+- Reject unsupported execution surfaces before writing files.
+
+prepare
+
+- Ensure `.wonder/` exists.
+- Ensure `.wonder/config/` exists.
+- Ensure `.wonder/runs/` exists.
+- Create `.wonder/config/build.json` only when it is absent.
+- Use this default build config when creating the file:
+
+```json
+{
+  "schemaVersion": 1,
+  "validationCommands": [],
+  "companionReadOnlyOptIn": false
+}
+```
+
+register
+
+- Read `.wonder/state.json` when present.
+- If `.wonder/state.json` is invalid JSON, stop without overwriting it and report that registry repair is required.
+- Merge only the `wonder-build` registry section.
+- Register `init`, `create`, `modify`, and `review` capability surfaces for every supported execution surface.
+- Mark only the current execution surface as initialized.
+- Preserve other plugin registry sections.
+- Preserve prior initialized flags for other execution surfaces.
+
+report
+
+- Report created paths.
+- Report existing paths reused.
+- Report registered capability ids.
+- Report the current execution surface initialized state.
+
+Do not create `.wonder/reports/build-latest.json`.
+Do not run create, modify, or review work.
+Do not modify other plugin config files.

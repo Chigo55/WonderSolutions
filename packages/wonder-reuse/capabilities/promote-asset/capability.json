@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "promote-asset",
+  "title": "Promote Asset",
+  "kind": "workflow",
+  "description": "Turn existing content or repeated output into a reusable asset.",
+  "requires": ["read", "search", "write", "edit", "ask-user", "report", "manage-state"]
+}

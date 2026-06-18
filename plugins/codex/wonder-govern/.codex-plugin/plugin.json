@@ -1,0 +1,6 @@
+{
+  "description": "Manage project standards and policy checks.",
+  "name": "wonder-govern",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

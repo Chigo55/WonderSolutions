@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "detect-capabilities",
+  "title": "Detect Capabilities",
+  "kind": "workflow",
+  "description": "Determine currently available external capabilities.",
+  "requires": ["read", "search", "write", "run-command", "ask-user", "report", "manage-state"]
+}

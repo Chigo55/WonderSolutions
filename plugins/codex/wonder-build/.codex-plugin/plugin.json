@@ -1,0 +1,6 @@
+{
+  "description": "Structure task creation, modification, and review.",
+  "name": "wonder-build",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "platform": "antigravity",
+  "surfaceNameRule": "antigravity-workflow-id",
+  "outputs": [
+    {
+      "kind": "plugin-manifest",
+      "scope": "package",
+      "path": ".agents/plugins/{{package.id}}/plugin.json",
+      "template": "plugin.json.hbs",
+      "textKind": "json",
+      "header": "none"
+    },
+    {
+      "kind": "plugin-skill",
+      "scope": "capability",
+      "path": ".agents/plugins/{{package.id}}/skills/{{capability.id}}/SKILL.md",
+      "template": "skill.md.hbs",
+      "textKind": "markdown",
+      "header": "html-comment"
+    }
+  ]
+}

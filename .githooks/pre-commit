@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+
+npm run generate
+npm run validate
+npm run drift

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "init",
+  "title": "Initialize Build",
+  "kind": "operation",
+  "description": "Prepare project-local runtime state for Wonder Build capabilities.",
+  "requires": ["read", "write", "manage-state", "report"]
+}

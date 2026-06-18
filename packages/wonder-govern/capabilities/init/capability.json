@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "init",
+  "title": "Initialize Govern",
+  "kind": "operation",
+  "description": "Prepare project-local runtime state for Wonder Govern capabilities.",
+  "requires": ["read", "write", "manage-state", "report"]
+}
