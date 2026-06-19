@@ -3,6 +3,7 @@ import type HandlebarsType from "handlebars";
 import { outputPathFor } from "../../shared/platform/paths.ts";
 import { canonicalId, surfaceName, type PlatformId } from "../../shared/platform/names.ts";
 import type { AdapterOutput } from "../../shared/schema/adapter.ts";
+import type { AbstractAction } from "../../shared/schema/capability.ts";
 import { generatedFileSchema } from "../../shared/schema/generated.ts";
 import type { CapabilityId, PackageId } from "../../shared/schema/package.ts";
 import { normalizeText, stableStringify } from "../../shared/hash/canonicalize.ts";
@@ -34,6 +35,29 @@ function renderPath(
 
 const MARKETPLACE_NAME = "wonder-solutions";
 const MARKETPLACE_OWNER = "Chigo55";
+const CODEX_MARKETPLACE_DISPLAY_NAME = "WonderSolutions";
+const CODEX_DEVELOPER_NAME = "WonderSolutions";
+const CODEX_CATEGORY = "Productivity";
+const CODEX_INTERACTIVE_ACTIONS: AbstractAction[] = ["ask-user", "delegate", "run-command", "web-research", "report"];
+const CODEX_READ_ACTIONS: AbstractAction[] = ["read", "search"];
+const CODEX_WRITE_ACTIONS: AbstractAction[] = ["write", "edit", "manage-state"];
+
+function codexCapabilities(packageSource: PackageSource): string[] {
+  const requiredActions = new Set(packageSource.capabilities.flatMap((capability) => capability.manifest.requires));
+  const capabilities: string[] = [];
+
+  if (CODEX_INTERACTIVE_ACTIONS.some((action) => requiredActions.has(action))) {
+    capabilities.push("Interactive");
+  }
+  if (CODEX_READ_ACTIONS.some((action) => requiredActions.has(action))) {
+    capabilities.push("Read");
+  }
+  if (CODEX_WRITE_ACTIONS.some((action) => requiredActions.has(action))) {
+    capabilities.push("Write");
+  }
+
+  return capabilities;
+}
 
 function marketplaceJson(platform: PlatformId, packages: readonly PackageSource[]): string {
   // Claude Code's marketplace schema requires top-level `name` and `owner`, and
@@ -53,15 +77,21 @@ function marketplaceJson(platform: PlatformId, packages: readonly PackageSource[
   }
 
   return stableStringify({
-    schemaVersion: 1,
+    name: MARKETPLACE_NAME,
+    interface: {
+      displayName: CODEX_MARKETPLACE_DISPLAY_NAME,
+    },
     plugins: packages.map((packageSource) => ({
       name: packageSource.manifest.id,
-      displayName: packageSource.manifest.displayName,
-      version: packageSource.manifest.version,
-      description: packageSource.manifest.description,
       source: {
+        source: "local",
         path: `./plugins/codex/${packageSource.manifest.id}`,
       },
+      policy: {
+        installation: "AVAILABLE",
+        authentication: "ON_INSTALL",
+      },
+      category: CODEX_CATEGORY,
     })),
   });
 }
@@ -77,11 +107,24 @@ function pluginManifestJson(platform: PlatformId, packageSource: PackageSource):
   }
 
   if (platform === "codex") {
+    const displayName = packageSource.manifest.displayName;
     return stableStringify({
       name: packageSource.manifest.id,
       version: packageSource.manifest.version,
       description: packageSource.manifest.description,
+      author: {
+        name: CODEX_DEVELOPER_NAME,
+      },
       skills: "./skills/",
+      interface: {
+        displayName,
+        shortDescription: packageSource.manifest.description,
+        longDescription: `${displayName} provides WonderSolutions ${packageSource.manifest.userJob.toLowerCase()} workflows for Codex.`,
+        developerName: CODEX_DEVELOPER_NAME,
+        category: CODEX_CATEGORY,
+        capabilities: codexCapabilities(packageSource),
+        defaultPrompt: [`Use ${displayName} in this repository.`],
+      },
     });
   }
 

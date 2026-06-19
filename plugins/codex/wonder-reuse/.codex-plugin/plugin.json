@@ -1,5 +1,23 @@
 {
+  "author": {
+    "name": "WonderSolutions"
+  },
   "description": "Manage reusable assets and generated output.",
+  "interface": {
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "category": "Productivity",
+    "defaultPrompt": [
+      "Use Wonder Reuse in this repository."
+    ],
+    "developerName": "WonderSolutions",
+    "displayName": "Wonder Reuse",
+    "longDescription": "Wonder Reuse provides WonderSolutions reuse workflows for Codex.",
+    "shortDescription": "Manage reusable assets and generated output."
+  },
   "name": "wonder-reuse",
   "skills": "./skills/",
   "version": "0.1.0"

@@ -1,41 +1,56 @@
 {
+  "interface": {
+    "displayName": "WonderSolutions"
+  },
+  "name": "wonder-solutions",
   "plugins": [
     {
-      "description": "Structure task creation, modification, and review.",
-      "displayName": "Wonder Build",
+      "category": "Productivity",
       "name": "wonder-build",
-      "source": {
-        "path": "./plugins/codex/wonder-build"
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
       },
-      "version": "0.1.0"
+      "source": {
+        "path": "./plugins/codex/wonder-build",
+        "source": "local"
+      }
     },
     {
-      "description": "Manage project standards and policy checks.",
-      "displayName": "Wonder Govern",
+      "category": "Productivity",
       "name": "wonder-govern",
-      "source": {
-        "path": "./plugins/codex/wonder-govern"
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
       },
-      "version": "0.1.0"
+      "source": {
+        "path": "./plugins/codex/wonder-govern",
+        "source": "local"
+      }
     },
     {
-      "description": "Manage reusable assets and generated output.",
-      "displayName": "Wonder Reuse",
+      "category": "Productivity",
       "name": "wonder-reuse",
-      "source": {
-        "path": "./plugins/codex/wonder-reuse"
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
       },
-      "version": "0.1.0"
+      "source": {
+        "path": "./plugins/codex/wonder-reuse",
+        "source": "local"
+      }
     },
     {
-      "description": "Discover companion tools and external capabilities.",
-      "displayName": "Wonder Extend",
+      "category": "Productivity",
       "name": "wonder-extend",
-      "source": {
-        "path": "./plugins/codex/wonder-extend"
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
       },
-      "version": "0.1.0"
+      "source": {
+        "path": "./plugins/codex/wonder-extend",
+        "source": "local"
+      }
     }
-  ],
-  "schemaVersion": 1
+  ]
 }

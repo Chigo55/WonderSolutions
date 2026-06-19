@@ -1,5 +1,23 @@
 {
+  "author": {
+    "name": "WonderSolutions"
+  },
   "description": "Structure task creation, modification, and review.",
+  "interface": {
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "category": "Productivity",
+    "defaultPrompt": [
+      "Use Wonder Build in this repository."
+    ],
+    "developerName": "WonderSolutions",
+    "displayName": "Wonder Build",
+    "longDescription": "Wonder Build provides WonderSolutions build workflows for Codex.",
+    "shortDescription": "Structure task creation, modification, and review."
+  },
   "name": "wonder-build",
   "skills": "./skills/",
   "version": "0.1.0"

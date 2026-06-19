@@ -1,5 +1,23 @@
 {
+  "author": {
+    "name": "WonderSolutions"
+  },
   "description": "Discover companion tools and external capabilities.",
+  "interface": {
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "category": "Productivity",
+    "defaultPrompt": [
+      "Use Wonder Extend in this repository."
+    ],
+    "developerName": "WonderSolutions",
+    "displayName": "Wonder Extend",
+    "longDescription": "Wonder Extend provides WonderSolutions extend workflows for Codex.",
+    "shortDescription": "Discover companion tools and external capabilities."
+  },
   "name": "wonder-extend",
   "skills": "./skills/",
   "version": "0.1.0"

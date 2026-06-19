@@ -1,5 +1,23 @@
 {
+  "author": {
+    "name": "WonderSolutions"
+  },
   "description": "Manage project standards and policy checks.",
+  "interface": {
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "category": "Productivity",
+    "defaultPrompt": [
+      "Use Wonder Govern in this repository."
+    ],
+    "developerName": "WonderSolutions",
+    "displayName": "Wonder Govern",
+    "longDescription": "Wonder Govern provides WonderSolutions govern workflows for Codex.",
+    "shortDescription": "Manage project standards and policy checks."
+  },
   "name": "wonder-govern",
   "skills": "./skills/",
   "version": "0.1.0"

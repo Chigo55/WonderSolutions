@@ -25,7 +25,7 @@
       "path": "plugins/codex/{{package.id}}/skills/{{package.id}}-{{capability.id}}/SKILL.md",
       "template": "skill.md.hbs",
       "textKind": "markdown",
-      "header": "html-comment"
+      "header": "none"
     },
     {
       "kind": "repo-skill",
@@ -33,7 +33,7 @@
       "path": ".agents/skills/{{package.id}}-{{capability.id}}/SKILL.md",
       "template": "skill.md.hbs",
       "textKind": "markdown",
-      "header": "html-comment"
+      "header": "none"
     }
   ]
 }
