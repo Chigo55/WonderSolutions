@@ -32,8 +32,26 @@ function renderPath(
   }).trim();
 }
 
+const MARKETPLACE_NAME = "wonder-solutions";
+const MARKETPLACE_OWNER = "Chigo55";
+
 function marketplaceJson(platform: PlatformId, packages: readonly PackageSource[]): string {
-  const sourceRoot = platform === "claude" ? "plugins/claude" : "plugins/codex";
+  // Claude Code's marketplace schema requires top-level `name` and `owner`, and
+  // plugin `source` must be a relative-path string for same-repo plugins.
+  // See https://code.claude.com/docs/en/plugin-marketplaces.
+  if (platform === "claude") {
+    return stableStringify({
+      name: MARKETPLACE_NAME,
+      owner: { name: MARKETPLACE_OWNER },
+      plugins: packages.map((packageSource) => ({
+        name: packageSource.manifest.id,
+        source: `./plugins/claude/${packageSource.manifest.id}`,
+        description: packageSource.manifest.description,
+        version: packageSource.manifest.version,
+      })),
+    });
+  }
+
   return stableStringify({
     schemaVersion: 1,
     plugins: packages.map((packageSource) => ({
@@ -42,7 +60,7 @@ function marketplaceJson(platform: PlatformId, packages: readonly PackageSource[
       version: packageSource.manifest.version,
       description: packageSource.manifest.description,
       source: {
-        path: `./${sourceRoot}/${packageSource.manifest.id}`,
+        path: `./plugins/codex/${packageSource.manifest.id}`,
       },
     })),
   });

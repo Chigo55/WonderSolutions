@@ -1,41 +1,32 @@
 {
+  "name": "wonder-solutions",
+  "owner": {
+    "name": "Chigo55"
+  },
   "plugins": [
     {
       "description": "Structure task creation, modification, and review.",
-      "displayName": "Wonder Build",
       "name": "wonder-build",
-      "source": {
-        "path": "./plugins/claude/wonder-build"
-      },
+      "source": "./plugins/claude/wonder-build",
       "version": "0.1.0"
     },
     {
       "description": "Manage project standards and policy checks.",
-      "displayName": "Wonder Govern",
       "name": "wonder-govern",
-      "source": {
-        "path": "./plugins/claude/wonder-govern"
-      },
+      "source": "./plugins/claude/wonder-govern",
       "version": "0.1.0"
     },
     {
       "description": "Manage reusable assets and generated output.",
-      "displayName": "Wonder Reuse",
       "name": "wonder-reuse",
-      "source": {
-        "path": "./plugins/claude/wonder-reuse"
-      },
+      "source": "./plugins/claude/wonder-reuse",
       "version": "0.1.0"
     },
     {
       "description": "Discover companion tools and external capabilities.",
-      "displayName": "Wonder Extend",
       "name": "wonder-extend",
-      "source": {
-        "path": "./plugins/claude/wonder-extend"
-      },
+      "source": "./plugins/claude/wonder-extend",
       "version": "0.1.0"
     }
-  ],
-  "schemaVersion": 1
+  ]
 }
