@@ -206,6 +206,7 @@ export const buildLatestReportSchema = z
   })
   .strict();
 
+export type RunStatus = z.infer<typeof runStatusSchema>;
 export type RunRecord = z.infer<typeof runRecordSchema>;
 export type BuildArtifacts = z.infer<typeof buildArtifactsSchema>;
 export type BuildModifyArtifacts = z.infer<typeof buildModifyArtifactsSchema>;

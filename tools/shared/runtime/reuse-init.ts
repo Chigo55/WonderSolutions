@@ -1,13 +1,7 @@
-import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import {
-  reuseAssetManifestSchema,
-  reuseIndexSchema,
-  type ReuseAssetKind,
-  type ReuseAssetManifest,
-  type ReuseIndex,
-  type ReuseIndexAsset,
-} from "../schema/reuse.ts";
+import { type ReuseAssetManifest } from "../schema/reuse.ts";
+import { buildReuseIndexValue } from "./reuse-index.ts";
 
 export const DEFAULT_REUSE_CONFIG = {
   schemaVersion: 1,
@@ -60,16 +54,6 @@ export interface EnsureReuseInitFilesResult {
   existingPaths: string[];
   skippedInvalidAssets: string[];
 }
-
-const ASSET_DIRECTORIES: ReadonlyArray<{
-  kind: ReuseAssetKind;
-  directory: string;
-}> = [
-  { kind: "template", directory: ".wonder/reuse/templates" },
-  { kind: "snippet", directory: ".wonder/reuse/snippets" },
-  { kind: "request", directory: ".wonder/reuse/requests" },
-  { kind: "pattern", directory: ".wonder/reuse/patterns" },
-];
 
 async function pathExists(path: string): Promise<boolean> {
   try {
@@ -128,65 +112,6 @@ async function seedStarterAssets(
   }
 }
 
-async function listAssetDirectories(projectRoot: string, relativeRoot: string): Promise<string[]> {
-  const absoluteRoot = join(projectRoot, relativeRoot);
-  if (!(await pathExists(absoluteRoot))) return [];
-
-  const entries = await readdir(absoluteRoot, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => `${relativeRoot}/${entry.name}`);
-}
-
-async function readAsset(projectRoot: string, relativePath: string): Promise<ReuseIndexAsset | undefined> {
-  const assetJsonPath = `${relativePath}/asset.json`;
-  const bodyPath = `${relativePath}/body.md`;
-  if (!(await pathExists(join(projectRoot, assetJsonPath))) || !(await pathExists(join(projectRoot, bodyPath)))) {
-    return undefined;
-  }
-
-  const manifest = reuseAssetManifestSchema.parse(
-    JSON.parse(await readFile(join(projectRoot, assetJsonPath), "utf8")),
-  );
-
-  return {
-    id: manifest.id,
-    kind: manifest.kind,
-    title: manifest.title,
-    path: relativePath,
-    tags: manifest.tags,
-    version: manifest.version,
-  };
-}
-
-async function buildReuseIndex(
-  projectRoot: string,
-  generatedAt: string,
-  result: EnsureReuseInitFilesResult,
-): Promise<ReuseIndex> {
-  const assets: ReuseIndexAsset[] = [];
-
-  for (const assetRoot of ASSET_DIRECTORIES) {
-    for (const relativePath of await listAssetDirectories(projectRoot, assetRoot.directory)) {
-      try {
-        const asset = await readAsset(projectRoot, relativePath);
-        if (asset) assets.push(asset);
-        else result.skippedInvalidAssets.push(relativePath);
-      } catch {
-        result.skippedInvalidAssets.push(relativePath);
-      }
-    }
-  }
-
-  assets.sort((left, right) => `${left.kind}:${left.id}`.localeCompare(`${right.kind}:${right.id}`));
-
-  return reuseIndexSchema.parse({
-    schemaVersion: 1,
-    generatedAt,
-    assets,
-  });
-}
-
 export async function ensureReuseInitFiles(
   projectRoot: string,
   generatedAt: string,
@@ -214,8 +139,13 @@ export async function ensureReuseInitFiles(
   );
   await seedStarterAssets(projectRoot, result);
 
-  const index = await buildReuseIndex(projectRoot, generatedAt, result);
-  await writeFile(join(projectRoot, ".wonder/reuse/index.json"), `${JSON.stringify(index, null, 2)}\n`, "utf8");
+  const built = await buildReuseIndexValue(projectRoot, generatedAt);
+  result.skippedInvalidAssets.push(...built.skippedInvalidAssets);
+  await writeFile(
+    join(projectRoot, ".wonder/reuse/index.json"),
+    `${JSON.stringify(built.index, null, 2)}\n`,
+    "utf8",
+  );
   result.createdPaths.push(".wonder/reuse/index.json");
 
   return result;
