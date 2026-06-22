@@ -27,6 +27,11 @@ npx tsx tools/generate/cli.ts --platform claude   # claude | codex | antigravity
 npx tsx tools/generate/cli.ts --dry-run
 npx tsx tools/validate/cli.ts --source            # source | generated | runtime
 npx tsx tools/validate/cli.ts --generated --drift
+
+# Deterministic runtime — two equivalent public surfaces over one registry
+npm run runtime -- list                            # list runtime operations (CLI fallback)
+npm run runtime -- listPackages --json '{"sourceRoot":"."}'
+npm run mcp                                        # start the wonder-runtime MCP stdio server
 ```
 
 Install the commit gate once: `git config core.hooksPath .githooks`. The hook runs `generate → validate → drift` and **fails the commit** if generated outputs changed — it does NOT `git add` for you, so you must regenerate, review, and stage the outputs yourself.
@@ -72,6 +77,8 @@ These are enforced in code — violating them throws or fails validation, not si
 ## Runtime layer (`.wonder/`) — separate concern
 
 `tools/shared/runtime/*` and the `.wonder/` schemas describe **project-local state created when the generated plugins actually run in a target project** (not in this repo). `state.json` is a machine-managed capability registry; invalid runtime state is reported with path + reason + repair hint and never auto-repaired. Don't confuse this with the build-time source/generated layers above.
+
+The deterministic runtime (spec: `docs/deterministic-runtime.md`, plan: `docs/deterministic-runtime-implementation-plan.md`) exposes these operations through **one registry** — `tools/shared/runtime/operations.ts` (`executeOperation(name, input)`, Zod-validated, returns a uniform `RuntimeResult` with created/existing/updated/skipped paths) — behind **two equivalent public surfaces**: the MCP server (`tools/mcp/`) and the repository CLI (`tools/runtime/`). Both must dispatch through the registry so they cannot drift apart. Markdown scaffolds for run files come from `tools/shared/runtime/markdown/`; strict-scaffold bodies are runtime-owned, agents fill the sections.
 
 ## Workflow for any source change
 

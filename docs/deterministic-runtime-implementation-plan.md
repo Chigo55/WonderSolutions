@@ -5,6 +5,15 @@
 > runtime layer and its two public invocation surfaces (MCP + CLI) on top of the
 > code that already exists in `tools/`.
 
+## Status
+
+Implemented (P0–P5): the operation registry (`tools/shared/runtime/operations.ts`)
+and both public surfaces — CLI (`tools/runtime/`, `npm run runtime`) and MCP
+(`tools/mcp/`, `npm run mcp`) — are in place, with the markdown scaffold engine,
+state/run/reuse/extend stores, `initPlugin`, and source-listing operations. All
+16 §7 operations are registered and covered by tests, including a CLI↔facade and
+an MCP-over-in-memory-transport equivalence check.
+
 ## 0. Summary
 
 The runtime *logic* already exists as scattered library functions under
