@@ -9,6 +9,7 @@
     "generate": "tsx tools/generate/cli.ts",
     "validate": "tsx tools/validate/cli.ts",
     "drift": "tsx tools/validate/cli.ts --generated --drift",
+    "runtime": "tsx tools/runtime/cli.ts",
     "check": "npm run generate && npm run validate && npm run drift"
   },
   "dependencies": {
