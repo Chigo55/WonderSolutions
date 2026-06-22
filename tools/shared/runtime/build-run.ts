@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { platformIdSchema, type PlatformId } from "../platform/names.ts";
+import { createScaffold } from "./markdown/scaffold.ts";
 import type { CapabilityId } from "../schema/package.ts";
 import {
   buildArtifactsSchema,
@@ -72,9 +73,9 @@ function buildRunFiles(
     return [
       ["run.json", jsonWithTrailingNewline(runRecord)],
       ["request.md", `${userRequest.trimEnd()}\n`],
-      ["inspect.md", ""],
+      ["inspect.md", createScaffold("build-inspect")],
       ["findings.json", jsonWithTrailingNewline(findings)],
-      ["report.md", ""],
+      ["report.md", createScaffold("run-report")],
       ["artifacts.json", jsonWithTrailingNewline(artifacts)],
     ];
   }
@@ -82,9 +83,9 @@ function buildRunFiles(
   return [
     ["run.json", jsonWithTrailingNewline(runRecord)],
     ["request.md", `${userRequest.trimEnd()}\n`],
-    ["plan.md", ""],
-    ["inspect.md", ""],
-    ["report.md", ""],
+    ["plan.md", createScaffold(capabilityId === "modify" ? "build-modify-plan" : "build-create-plan")],
+    ["inspect.md", createScaffold("build-inspect")],
+    ["report.md", createScaffold("run-report")],
     ["artifacts.json", jsonWithTrailingNewline(artifacts)],
   ];
 }

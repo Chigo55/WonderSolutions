@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { platformIdSchema, type PlatformId } from "../platform/names.ts";
+import { createScaffold } from "./markdown/scaffold.ts";
 import type { CapabilityId } from "../schema/package.ts";
 import { runRecordSchema, type RunRecord } from "../schema/run.ts";
 import {
@@ -218,7 +219,7 @@ function discoverCompanionFiles(
   return [
     ["run.json", jsonWithTrailingNewline(runRecord)],
     ["request.md", `${userRequest.trimEnd()}\n`],
-    ["recommendation-context.md", ""],
+    ["recommendation-context.md", createScaffold("recommendation-context")],
     [
       "companion-recommendations.json",
       jsonWithTrailingNewline(companionRecommendationListSchema.parse({ recommendations: [] })),
@@ -233,7 +234,7 @@ function discoverCompanionFiles(
         }),
       ),
     ],
-    ["report.md", ""],
+    ["report.md", createScaffold("run-report")],
     ["artifacts.json", jsonWithTrailingNewline(discoverCompanionArtifactsSchema.parse({ updatedPaths: [] }))],
   ];
 }
@@ -425,7 +426,7 @@ function configureIntegrationFiles(
     ["run.json", jsonWithTrailingNewline(runRecord)],
     ["request.md", `${userRequest.trimEnd()}\n`],
     ["integration-changes.json", jsonWithTrailingNewline(emptyIntegrationChanges())],
-    ["report.md", ""],
+    ["report.md", createScaffold("run-report")],
     [
       "artifacts.json",
       jsonWithTrailingNewline(configureIntegrationArtifactsSchema.parse({ updatedPaths: [] })),
@@ -613,14 +614,13 @@ function emptyCapabilitiesSnapshot(generatedAt: string): ExtendCapabilitiesSnaps
 function detectCapabilitiesFiles(
   runRecord: RunRecord,
   userRequest: string,
-  remoteConsent: boolean,
 ): ReadonlyArray<readonly [fileName: string, content: string]> {
   return [
     ["run.json", jsonWithTrailingNewline(runRecord)],
     ["request.md", `${userRequest.trimEnd()}\n`],
-    ["detection-plan.md", `remoteConsent: ${remoteConsent ? "granted" : "not granted"}\nremoteChecks: skipped\n`],
+    ["detection-plan.md", createScaffold("detection-plan")],
     ["detection-results.json", jsonWithTrailingNewline(emptyCapabilitiesSnapshot(runRecord.startedAt))],
-    ["report.md", ""],
+    ["report.md", createScaffold("run-report")],
     [
       "artifacts.json",
       jsonWithTrailingNewline(
@@ -652,7 +652,7 @@ export async function createDetectCapabilitiesRunScaffold(
       remoteConsent: options.remoteConsent,
     },
   });
-  const files = detectCapabilitiesFiles(runRecord, options.userRequest, options.remoteConsent);
+  const files = detectCapabilitiesFiles(runRecord, options.userRequest);
 
   for (const [fileName, content] of files) {
     await writeFile(join(runDir, fileName), content, "utf8");

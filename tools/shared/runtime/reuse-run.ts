@@ -1,6 +1,7 @@
 import { mkdir, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { platformIdSchema, type PlatformId } from "../platform/names.ts";
+import { createScaffold } from "./markdown/scaffold.ts";
 import type { CapabilityId } from "../schema/package.ts";
 import {
   reuseGenerationArtifactsSchema,
@@ -279,7 +280,7 @@ function generationFiles(
     ["selected-asset.json", jsonWithTrailingNewline(selectedReuseAssetSchema.parse({}))],
     ["variables.json", jsonWithTrailingNewline({})],
     ["output.md", ""],
-    ["report.md", ""],
+    ["report.md", createScaffold("run-report")],
     ["artifacts.json", jsonWithTrailingNewline(reuseGenerationArtifactsSchema.parse({ writtenPaths: [] }))],
   ];
 }
@@ -292,10 +293,10 @@ function promotionFiles(
     ["run.json", jsonWithTrailingNewline(runRecord)],
     ["request.md", `${userRequest.trimEnd()}\n`],
     ["source.md", ""],
-    ["abstraction.md", ""],
+    ["abstraction.md", createScaffold("abstraction")],
     ["proposed-asset.json", jsonWithTrailingNewline({})],
     ["proposed-body.md", ""],
-    ["report.md", ""],
+    ["report.md", createScaffold("run-report")],
     ["artifacts.json", jsonWithTrailingNewline(promotedAssetArtifactsSchema.parse({ savedAssetPath: null }))],
   ];
 }
@@ -337,7 +338,7 @@ export async function createReuseRunScaffold(
           ["run.json", jsonWithTrailingNewline(runRecord)],
           ["request.md", `${options.userRequest.trimEnd()}\n`],
           ["asset-changes.json", jsonWithTrailingNewline(defaultAssetChanges())],
-          ["report.md", ""],
+          ["report.md", createScaffold("run-report")],
           ["artifacts.json", jsonWithTrailingNewline({})],
         ] as const);
 

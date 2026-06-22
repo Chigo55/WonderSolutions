@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { platformIdSchema, type PlatformId } from "../platform/names.ts";
+import { createScaffold } from "./markdown/scaffold.ts";
 import type { CapabilityId } from "../schema/package.ts";
 import {
   governStandardsArtifactsSchema,
@@ -57,9 +58,9 @@ function governRunFiles(
       ["run.json", jsonWithTrailingNewline(runRecord)],
       ["request.md", `${userRequest.trimEnd()}\n`],
       ["standards-index.json", jsonWithTrailingNewline(standardsIndex)],
-      ["inspect.md", ""],
+      ["inspect.md", createScaffold("govern-inspect")],
       ["violations.json", jsonWithTrailingNewline(violations)],
-      ["report.md", ""],
+      ["report.md", createScaffold("run-report")],
       ["artifacts.json", jsonWithTrailingNewline({})],
     ];
   }
@@ -68,10 +69,10 @@ function governRunFiles(
     return [
       ["run.json", jsonWithTrailingNewline(runRecord)],
       ["request.md", `${userRequest.trimEnd()}\n`],
-      ["observed-conventions.md", ""],
-      ["proposed-standards.md", ""],
-      ["changes.md", ""],
-      ["report.md", ""],
+      ["observed-conventions.md", createScaffold("observed-conventions")],
+      ["proposed-standards.md", createScaffold("proposed-standards")],
+      ["changes.md", createScaffold("standards-changes")],
+      ["report.md", createScaffold("run-report")],
       ["artifacts.json", jsonWithTrailingNewline(defaultDefineStandardsArtifacts())],
     ];
   }
