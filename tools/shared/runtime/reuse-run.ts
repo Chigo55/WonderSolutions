@@ -1,7 +1,8 @@
 import { mkdir, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { platformIdSchema, type PlatformId } from "../platform/names.ts";
 import { createScaffold } from "./markdown/scaffold.ts";
+import { writeRunFilesIfAbsent } from "./run-files.ts";
 import type { CapabilityId } from "../schema/package.ts";
 import {
   reuseGenerationArtifactsSchema,
@@ -74,6 +75,8 @@ export interface ReuseRunScaffoldResult {
   runId: string;
   runDir: string;
   files: string[];
+  createdPaths: string[];
+  existingPaths: string[];
 }
 
 const CHANGING_OPERATIONS = new Set<ReuseOperation>([
@@ -140,10 +143,6 @@ export function createPromotedAssetDraft(options: CreatePromotedAssetDraftOption
 
 function jsonWithTrailingNewline(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
-}
-
-function runRelativePath(runId: string, fileName: string): string {
-  return `.wonder/runs/${runId}/${fileName}`;
 }
 
 function defaultAssetChanges(): ReuseAssetChanges {
@@ -270,6 +269,58 @@ export async function assertReuseTargetWriteAllowed(options: ReuseTargetWriteOpt
   return true;
 }
 
+export interface RenderReuseOutputFilesOptions {
+  projectRoot: string;
+  output: string;
+  runId?: string;
+  targetPath?: string;
+  explicitTargetPath?: boolean;
+  overwriteConfirmed?: boolean;
+}
+
+export interface RenderReuseOutputFilesResult {
+  writtenPaths: string[];
+  createdPaths: string[];
+  updatedPaths: string[];
+}
+
+async function writeOutputFile(projectRoot: string, relativePath: string, output: string): Promise<void> {
+  const absolutePath = join(projectRoot, relativePath);
+  await mkdir(dirname(absolutePath), { recursive: true });
+  await writeFile(absolutePath, output, "utf8");
+}
+
+export async function writeRenderedReuseOutput(
+  options: RenderReuseOutputFilesOptions,
+): Promise<RenderReuseOutputFilesResult> {
+  const writtenPaths: string[] = [];
+  const createdPaths: string[] = [];
+  const updatedPaths: string[] = [];
+
+  if (options.runId !== undefined) {
+    const runOutputPath = `.wonder/runs/${options.runId}/output.md`;
+    const existed = await pathExists(join(options.projectRoot, runOutputPath));
+    await writeOutputFile(options.projectRoot, runOutputPath, options.output);
+    writtenPaths.push(runOutputPath);
+    (existed ? updatedPaths : createdPaths).push(runOutputPath);
+  }
+
+  if (options.targetPath !== undefined) {
+    const existed = await pathExists(join(options.projectRoot, options.targetPath));
+    await assertReuseTargetWriteAllowed({
+      projectRoot: options.projectRoot,
+      targetPath: options.targetPath,
+      explicitTargetPath: options.explicitTargetPath === true,
+      ...(options.overwriteConfirmed !== undefined ? { overwriteConfirmed: options.overwriteConfirmed } : {}),
+    });
+    await writeOutputFile(options.projectRoot, options.targetPath, options.output);
+    writtenPaths.push(options.targetPath);
+    (existed ? updatedPaths : createdPaths).push(options.targetPath);
+  }
+
+  return { writtenPaths, createdPaths, updatedPaths };
+}
+
 function generationFiles(
   runRecord: RunRecord,
   userRequest: string,
@@ -318,7 +369,6 @@ export async function createReuseRunScaffold(
 
   const platform = platformIdSchema.parse(options.platform);
   const runDir = join(options.projectRoot, ".wonder", "runs", options.runId);
-  await mkdir(runDir, { recursive: true });
 
   const runRecord: RunRecord = runRecordSchema.parse({
     schemaVersion: 1,
@@ -341,14 +391,13 @@ export async function createReuseRunScaffold(
           ["report.md", createScaffold("run-report")],
           ["artifacts.json", jsonWithTrailingNewline({})],
         ] as const);
-
-  for (const [fileName, content] of files) {
-    await writeFile(join(runDir, fileName), content, "utf8");
-  }
+  const written = await writeRunFilesIfAbsent(runDir, options.runId, files);
 
   return {
     runId: options.runId,
     runDir,
-    files: files.map(([fileName]) => runRelativePath(options.runId, fileName)),
+    files: written.files,
+    createdPaths: written.createdPaths,
+    existingPaths: written.existingPaths,
   };
 }

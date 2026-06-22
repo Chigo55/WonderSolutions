@@ -100,6 +100,8 @@ describe("initPlugin", () => {
 
       assert.equal(result.ok, true);
       assert.equal(existsSync(join(root, ".wonder/extend/companions.json")), true);
+      const capabilities = JSON.parse(await readFile(join(root, ".wonder/extend/capabilities.json"), "utf8"));
+      assert.equal(capabilities.generatedAt, generatedAt);
     });
   });
 });

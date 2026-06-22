@@ -1,7 +1,7 @@
-import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { platformIdSchema, type PlatformId } from "../platform/names.ts";
 import { createScaffold } from "./markdown/scaffold.ts";
+import { writeRunFilesIfAbsent } from "./run-files.ts";
 import type { CapabilityId } from "../schema/package.ts";
 import { runRecordSchema, type RunRecord } from "../schema/run.ts";
 import {
@@ -62,6 +62,8 @@ export interface DiscoverCompanionsRunScaffoldResult {
   runId: string;
   runDir: string;
   files: string[];
+  createdPaths: string[];
+  existingPaths: string[];
 }
 
 export function requiresDiscoverCompanionsRunRecord(operation: DiscoverCompanionOperation): boolean {
@@ -208,10 +210,6 @@ function jsonWithTrailingNewline(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
-function runRelativePath(runId: string, fileName: string): string {
-  return `.wonder/runs/${runId}/${fileName}`;
-}
-
 function discoverCompanionFiles(
   runRecord: RunRecord,
   userRequest: string,
@@ -249,7 +247,6 @@ export async function createDiscoverCompanionsRunScaffold(
   const platform = platformIdSchema.parse(options.platform);
   const capabilityId: CapabilityId = "discover-companions";
   const runDir = join(options.projectRoot, ".wonder", "runs", options.runId);
-  await mkdir(runDir, { recursive: true });
 
   const runRecord = runRecordSchema.parse({
     schemaVersion: 1,
@@ -264,15 +261,14 @@ export async function createDiscoverCompanionsRunScaffold(
     },
   });
   const files = discoverCompanionFiles(runRecord, options.userRequest);
-
-  for (const [fileName, content] of files) {
-    await writeFile(join(runDir, fileName), content, "utf8");
-  }
+  const written = await writeRunFilesIfAbsent(runDir, options.runId, files);
 
   return {
     runId: options.runId,
     runDir,
-    files: files.map(([fileName]) => runRelativePath(options.runId, fileName)),
+    files: written.files,
+    createdPaths: written.createdPaths,
+    existingPaths: written.existingPaths,
   };
 }
 
@@ -314,6 +310,8 @@ export interface ConfigureIntegrationRunScaffoldResult {
   runId: string;
   runDir: string;
   files: string[];
+  createdPaths: string[];
+  existingPaths: string[];
 }
 
 const FORBIDDEN_INTEGRATION_FIELD_PATTERN = /^(token|password|secret|privateKey|apiKeyValue|credentialValue)$/i;
@@ -444,7 +442,6 @@ export async function createConfigureIntegrationRunScaffold(
   const platform = platformIdSchema.parse(options.platform);
   const capabilityId: CapabilityId = "configure-integration";
   const runDir = join(options.projectRoot, ".wonder", "runs", options.runId);
-  await mkdir(runDir, { recursive: true });
 
   const runRecord = runRecordSchema.parse({
     schemaVersion: 1,
@@ -459,15 +456,14 @@ export async function createConfigureIntegrationRunScaffold(
     },
   });
   const files = configureIntegrationFiles(runRecord, options.userRequest);
-
-  for (const [fileName, content] of files) {
-    await writeFile(join(runDir, fileName), content, "utf8");
-  }
+  const written = await writeRunFilesIfAbsent(runDir, options.runId, files);
 
   return {
     runId: options.runId,
     runDir,
-    files: files.map(([fileName]) => runRelativePath(options.runId, fileName)),
+    files: written.files,
+    createdPaths: written.createdPaths,
+    existingPaths: written.existingPaths,
   };
 }
 
@@ -503,6 +499,8 @@ export interface DetectCapabilitiesRunScaffoldResult {
   runId: string;
   runDir: string;
   files: string[];
+  createdPaths: string[];
+  existingPaths: string[];
 }
 
 const PROVIDER_CAPABILITY_IDS: Record<string, readonly string[]> = {
@@ -638,7 +636,6 @@ export async function createDetectCapabilitiesRunScaffold(
   const platform = platformIdSchema.parse(options.platform);
   const capabilityId: CapabilityId = "detect-capabilities";
   const runDir = join(options.projectRoot, ".wonder", "runs", options.runId);
-  await mkdir(runDir, { recursive: true });
 
   const runRecord = runRecordSchema.parse({
     schemaVersion: 1,
@@ -653,14 +650,13 @@ export async function createDetectCapabilitiesRunScaffold(
     },
   });
   const files = detectCapabilitiesFiles(runRecord, options.userRequest);
-
-  for (const [fileName, content] of files) {
-    await writeFile(join(runDir, fileName), content, "utf8");
-  }
+  const written = await writeRunFilesIfAbsent(runDir, options.runId, files);
 
   return {
     runId: options.runId,
     runDir,
-    files: files.map(([fileName]) => runRelativePath(options.runId, fileName)),
+    files: written.files,
+    createdPaths: written.createdPaths,
+    existingPaths: written.existingPaths,
   };
 }

@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deterministic Runtime Session Evaluation</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #5d6978;
+      --line: #d9dee7;
+      --panel: #f7f9fc;
+      --good: #0f7a4f;
+      --warn: #9a5b00;
+      --bad: #b42318;
+      --info: #27548a;
+      --code: #24364f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, "Malgun Gothic", sans-serif;
+      color: var(--ink);
+      background: #ffffff;
+      line-height: 1.58;
+    }
+
+    main {
+      width: min(1120px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 40px 0 56px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.25;
+    }
+
+    h1 {
+      font-size: 30px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 21px;
+      margin-top: 34px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    h3 {
+      font-size: 17px;
+      margin-top: 18px;
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    a {
+      color: var(--info);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      font-family: Consolas, "SFMono-Regular", monospace;
+      font-size: 0.94em;
+      color: var(--code);
+      background: #eef2f7;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    ul {
+      padding-left: 21px;
+      margin: 10px 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 24px;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+    }
+
+    th {
+      background: #eef3f9;
+      font-weight: 700;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 13px 14px;
+      min-height: 94px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .verdict {
+      border-left: 5px solid var(--warn);
+      background: #fff8ed;
+      padding: 14px 16px;
+      margin: 20px 0 24px;
+    }
+
+    .finding {
+      border: 1px solid var(--line);
+      margin: 14px 0;
+      padding: 14px 16px;
+      background: #ffffff;
+    }
+
+    .finding h3 {
+      margin-top: 0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      line-height: 1;
+      padding: 5px 7px;
+      border-radius: 999px;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .high {
+      background: var(--bad);
+    }
+
+    .medium {
+      background: var(--warn);
+    }
+
+    .low {
+      background: var(--info);
+    }
+
+    .ok {
+      background: var(--good);
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .evidence {
+      background: #f5f7fa;
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    .command-list code {
+      display: inline-block;
+      margin: 2px 0;
+    }
+
+    @media (max-width: 820px) {
+      main {
+        width: min(100% - 28px, 1120px);
+        padding-top: 28px;
+      }
+
+      .summary {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Deterministic Runtime 세션 재평가</h1>
+    <p class="note">작성일: 2026-06-22 · 기준 파일: <code>docs/session-report-2026-06-22.md</code>, <code>docs/deterministic-runtime-implementation-plan.md</code>, <code>docs/deterministic-runtime.md</code>, 보완 후 워킹트리</p>
+
+    <section class="verdict">
+      <h2>종합 판정</h2>
+      <p><strong>초기 평가는 “핵심 구조는 구현됐지만 전체 완료 판정은 과하다”였고, 이번 보완으로 주요 계약 위반을 해결했다.</strong></p>
+      <p>CLI/MCP 공개 표면, 단일 operation registry, 16개 operation 등록, 테스트 통과, 0.2.0 버전 범프, hook 활성화는 유지했다. 추가로 스펙 파일 추적성, run scaffold 보존성, 런타임 결정성, typed update 엄격성, reuse output 쓰기 operation을 보완했다.</p>
+    </section>
+
+    <section class="summary" aria-label="요약 지표">
+      <div class="metric">
+        <strong>보완 완료</strong>
+        <span>초기 High/Medium findings 조치 완료</span>
+      </div>
+      <div class="metric">
+        <strong>검증 필요</strong>
+        <span>최종 커밋 전 전체 검증으로 확정</span>
+      </div>
+      <div class="metric">
+        <strong>16 ops</strong>
+        <span>현재 §7 registry operation 수</span>
+      </div>
+      <div class="metric">
+        <strong>5 fixed</strong>
+        <span>추적성, 보존성, strict update, output write, timestamp</span>
+      </div>
+    </section>
+
+    <h2>검증한 세션 리포트 주장</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>리포트 주장</th>
+          <th>현재 확인 결과</th>
+          <th>평가</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>P0-P5 전부 완료</code></td>
+          <td>registry, CLI, MCP, IO, scaffold, store 계층은 존재한다. 초기 findings는 아래 보완으로 해결했다.</td>
+          <td><span class="badge ok">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td><code>§7 오퍼레이션 16개 등록 + 테스트</code></td>
+          <td><code>tests/runtime-operations.test.ts</code>가 16개 operation 목록을 고정 검증한다.</td>
+          <td><span class="badge ok">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td><code>CLI + MCP 공개 표면</code></td>
+          <td><code>tools/runtime/dispatch.ts</code>와 <code>tools/mcp/tools.ts</code>가 둘 다 <code>executeOperation</code>을 호출한다.</td>
+          <td><span class="badge ok">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td><code>171 tests, typecheck clean</code></td>
+          <td><code>npm.cmd test</code> 171 pass, <code>npm.cmd run typecheck</code> exit 0.</td>
+          <td><span class="badge ok">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td><code>drift 없음</code></td>
+          <td><code>npm.cmd run validate</code>는 <code>{ ok: true, drift: false }</code>. <code>npm.cmd run drift</code>도 exit 0이지만 출력은 <code>{ ok: true, drift: true }</code>라 명명은 혼동 여지가 있다.</td>
+          <td><span class="badge ok">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td><code>main → origin 완전 동기화</code></td>
+          <td>보완 커밋 전에는 로컬 문서 변경과 미추적 문서가 있었다. 이번 커밋 범위에 포함해 원격에 반영한다.</td>
+          <td><span class="badge ok">Resolved</span></td>
+        </tr>
+        <tr>
+          <td><code>0.2.0 릴리스 푸시</code></td>
+          <td>루트 package, package lock, 4개 package manifest, MCP server version이 0.2.0으로 확인된다.</td>
+          <td><span class="badge ok">Confirmed</span></td>
+        </tr>
+        <tr>
+          <td><code>pre-commit 활성화 + 양방향 검증</code></td>
+          <td><code>core.hooksPath=.githooks</code>이고 hook은 <code>generate</code>, <code>validate</code>, <code>drift</code>를 실행한다. 테스트는 hook에 포함되지 않는다.</td>
+          <td><span class="badge ok">Confirmed</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Findings And Remediation</h2>
+
+    <article class="finding">
+      <h3><span class="badge ok">Resolved</span> 핵심 스펙 파일 추적성</h3>
+      <p>초기 평가에서는 <code>docs/deterministic-runtime.md</code>가 미추적이라 release completeness가 깨져 있었다. 이번 보완 커밋에 스펙 문서를 포함해 코드 주석과 테스트가 참조하는 계약 문서가 원격에도 남도록 한다.</p>
+      <div class="evidence">
+        Remediation: <code>docs/deterministic-runtime.md</code>를 커밋 대상에 포함.
+      </div>
+    </article>
+
+    <article class="finding">
+      <h3><span class="badge ok">Resolved</span> <code>createRunScaffold</code> 기존 run 파일 보존</h3>
+      <p>스펙은 run record를 “create once”로 정의하고 기존 user/agent content 보존을 기본값으로 둔다. 이번 보완에서 공통 <code>writeRunFilesIfAbsent</code> helper를 추가해 build/govern/reuse/extend scaffold가 기존 파일을 덮지 않고 <code>existingPaths</code>로 보고하게 했다.</p>
+      <div class="evidence">
+        Remediation: <code>tools/shared/runtime/run-files.ts</code> 추가, <code>operations.ts</code> path disposition 수정, registry-level preservation test 추가.
+      </div>
+    </article>
+
+    <article class="finding">
+      <h3><span class="badge ok">Resolved</span> <code>updateRunRecord</code> strict typed update</h3>
+      <p>구현 계획은 run-record typed update가 unknown field를 거부해야 한다고 적는다. 이번 보완에서 registry input schema의 <code>patch</code> object를 <code>.strict()</code>로 바꾸고, unknown patch가 <code>runtime-invalid-input</code>으로 실패하는 테스트를 추가했다.</p>
+      <div class="evidence">
+        Remediation: <code>tools/shared/runtime/operations.ts</code> patch schema strict화, <code>tests/runtime-operations.test.ts</code> 회귀 테스트 추가.
+      </div>
+    </article>
+
+    <article class="finding">
+      <h3><span class="badge ok">Resolved</span> <code>renderReuseOutput</code> 파일 쓰기 operation</h3>
+      <p>계획은 <code>renderReuseOutput(...)</code>을 <code>renderReuseTemplate</code> 래핑과 <code>output.md</code> 쓰기, <code>assertReuseTargetWriteAllowed</code> 보호까지 포함한 operation으로 정의했다. 이번 보완에서 registry input에 <code>projectRoot</code>, <code>runId</code>, <code>targetPath</code>, <code>explicitTargetPath</code>, <code>overwriteConfirmed</code>를 추가하고, run output 및 명시 target 파일 쓰기를 연결했다.</p>
+      <div class="evidence">
+        Remediation: <code>writeRenderedReuseOutput</code> 추가, <code>renderReuseOutput</code> operation 확장, run output write test 추가.
+      </div>
+    </article>
+
+    <article class="finding">
+      <h3><span class="badge ok">Resolved</span> <code>extend-init.ts</code> caller-provided timestamp</h3>
+      <p>세션 리포트는 “타임스탬프/run-id는 operation 입력으로 받음”이라고 정리하면서도 후속 항목으로 <code>extend-init.ts</code>의 <code>new Date()</code>를 남겼다. 이번 보완에서 <code>ensureExtendInitFiles</code>가 <code>generatedAt</code>을 인자로 받도록 바꾸고, <code>initPlugin</code>의 입력값을 전달하게 했다.</p>
+      <div class="evidence">
+        Remediation: <code>new Date()</code> 제거, extend init tests가 정확한 <code>generatedAt</code> 값을 검증.
+      </div>
+    </article>
+
+    <article class="finding">
+      <h3><span class="badge low">Documented</span> P1/P2의 일부 계획 항목은 현재 spec과 구현 사이에서 정리 필요</h3>
+      <p><code>.wonder/standards/*.md</code>는 계획상 scaffold registry 대상이지만, 현재 govern init은 별도 하드코딩 starter text를 쓴다. 또한 <code>updateConfig(domain, patch)</code>는 계획에는 있지만 현재 authoritative §7 operation list에는 없다.</p>
+      <p>이 둘은 즉시 런타임 장애라기보다 문서 정합성 문제다. 계획을 구현 기준으로 계속 둘지, 현재 <code>docs/deterministic-runtime.md</code>의 §7 목록을 기준으로 둘지 정해야 한다.</p>
+      <div class="evidence">
+        Evidence: <code>docs/deterministic-runtime-implementation-plan.md</code> Phase 1 and Phase 2, <code>tools/shared/runtime/govern-init.ts</code> starter standards, <code>docs/deterministic-runtime.md</code> §7 operation list.
+      </div>
+    </article>
+
+    <h2>검증 명령 결과</h2>
+    <ul class="command-list">
+      <li>최종 검증은 보완 커밋 직전에 <code>npm.cmd test</code>, <code>npm.cmd run typecheck</code>, <code>npm.cmd run validate</code>, <code>npm.cmd run drift</code>, <code>npm.cmd run check</code>로 수행한다.</li>
+      <li>초기 평가 당시에는 <code>npm.cmd test</code> 171 tests, 83 suites, 0 failures였다.</li>
+    </ul>
+
+    <h2>권장 조치</h2>
+    <ol>
+      <li><code>updateConfig(domain, patch)</code>를 실제 §7 operation으로 승격할지, 아니면 계획 문서에서 명시적으로 deferred로 둘지 결정한다.</li>
+      <li><code>.wonder/standards/*.md</code> starter content를 strict scaffold registry로 통합할지 결정한다.</li>
+      <li>pre-commit hook에 <code>npm test</code> 또는 빠른 smoke subset을 추가할지 결정한다. 세션 리포트 자체가 테스트 미실행 회귀를 이미 기록하고 있다.</li>
+    </ol>
+
+    <h2>최종 결론</h2>
+    <p>세션 리포트는 구현된 큰 구조를 잘 요약했고, 이번 보완으로 주요 계약 위반도 해결했다. 남은 항목은 <code>updateConfig</code>와 standards scaffold처럼 현재 §7 스펙에 없는 계획 잔여분을 제품 범위로 둘지 결정하는 문서/범위 정리다.</p>
+  </main>
+</body>
+</html>

@@ -38,6 +38,8 @@ export interface RunScaffoldResult {
   runId: string;
   runDir: string;
   files: string[];
+  createdPaths: string[];
+  existingPaths: string[];
 }
 
 function abort(code: string, message: string, hint: string): never {

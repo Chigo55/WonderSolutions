@@ -24,7 +24,7 @@ import { initPlugin } from "./init-plugin.ts";
 import { readStateFile } from "./state-store.ts";
 import { updateRunRecord, writeLatestReport, type RunRecordPatch } from "./run-store.ts";
 import { refreshReuseIndex } from "./reuse-index.ts";
-import { renderReuseTemplate } from "./reuse-run.ts";
+import { renderReuseTemplate, writeRenderedReuseOutput } from "./reuse-run.ts";
 import { applyIntegrationChangeOnDisk, detectCapabilitiesOnDisk } from "./extend-store.ts";
 import { createRunScaffold } from "./run-scaffold.ts";
 import { runDrift, runGenerate, runValidate } from "./pipeline-ops.ts";
@@ -154,7 +154,7 @@ const OPERATIONS: readonly RegisteredOperation[] = [
         ...(input.remoteConsent !== undefined ? { remoteConsent: input.remoteConsent } : {}),
       });
       return runtimeOk(result, {
-        paths: { created: result.files, existing: [], updated: [], skipped: [] },
+        paths: { created: result.createdPaths, existing: result.existingPaths, updated: [], skipped: [] },
       });
     },
   ),
@@ -171,8 +171,8 @@ const OPERATIONS: readonly RegisteredOperation[] = [
         outputs: z.record(z.unknown()).optional(),
         validation: z.unknown().optional(),
         error: z.unknown().optional(),
-      }),
-    }),
+      }).strict(),
+    }).strict(),
     async (input) => {
       const record = await updateRunRecord(input.projectRoot, input.runId, input.patch as RunRecordPatch);
       return runtimeOk(record, {
@@ -221,13 +221,44 @@ const OPERATIONS: readonly RegisteredOperation[] = [
       variables: z.record(z.string()),
       requiredVariables: z.array(z.string()).optional(),
       optionalDefaults: z.record(z.string()).optional(),
-    }),
+      projectRoot: z.string().min(1).optional(),
+      runId: z.string().min(1).optional(),
+      targetPath: z.string().min(1).optional(),
+      explicitTargetPath: z.boolean().optional(),
+      overwriteConfirmed: z.boolean().optional(),
+    }).strict(),
     async (input) => {
       const result = renderReuseTemplate(input.body, input.variables, {
         ...(input.requiredVariables !== undefined ? { requiredVariables: input.requiredVariables } : {}),
         ...(input.optionalDefaults !== undefined ? { optionalDefaults: input.optionalDefaults } : {}),
       });
-      return runtimeOk(result, { warnings: result.warnings });
+      if (input.projectRoot === undefined && (input.runId !== undefined || input.targetPath !== undefined)) {
+        return runtimeFail(
+          runtimeError("runtime-missing-project-root", "renderReuseOutput requires projectRoot when writing output files", {
+            hint: "pass projectRoot with runId and/or targetPath, or omit write targets for render-only mode",
+          }),
+        );
+      }
+
+      const writes =
+        input.projectRoot !== undefined
+          ? await writeRenderedReuseOutput({
+              projectRoot: input.projectRoot,
+              output: result.output,
+              ...(input.runId !== undefined ? { runId: input.runId } : {}),
+              ...(input.targetPath !== undefined ? { targetPath: input.targetPath } : {}),
+              ...(input.explicitTargetPath !== undefined ? { explicitTargetPath: input.explicitTargetPath } : {}),
+              ...(input.overwriteConfirmed !== undefined ? { overwriteConfirmed: input.overwriteConfirmed } : {}),
+            })
+          : { writtenPaths: [], createdPaths: [], updatedPaths: [] };
+
+      return runtimeOk(
+        { ...result, writtenPaths: writes.writtenPaths },
+        {
+          paths: { created: writes.createdPaths, existing: [], updated: writes.updatedPaths, skipped: [] },
+          warnings: result.warnings,
+        },
+      );
     },
   ),
 

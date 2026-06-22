@@ -96,6 +96,7 @@ async function readCatalogs(catalogRoot: string): Promise<{
 export async function ensureExtendInitFiles(
   projectRoot: string,
   catalogRoot: string,
+  generatedAt: string,
 ): Promise<EnsureExtendInitFilesResult> {
   const catalogs = await readCatalogs(catalogRoot);
   const result: EnsureExtendInitFilesResult = {
@@ -160,7 +161,7 @@ export async function ensureExtendInitFiles(
     `${JSON.stringify(
       extendCapabilitiesSnapshotSchema.parse({
         schemaVersion: 1,
-        generatedAt: new Date().toISOString(),
+        generatedAt,
         capabilities: {},
       }),
       null,

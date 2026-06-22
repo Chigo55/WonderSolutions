@@ -22,6 +22,7 @@ import {
 } from "../tools/shared/runtime/extend-init.ts";
 
 const root = process.cwd();
+const generatedAt = "2026-06-22T00:00:00.000Z";
 
 async function readJson(path: string): Promise<unknown> {
   return JSON.parse(await readFile(join(root, path), "utf8"));
@@ -114,7 +115,7 @@ describe("wonder-extend init runtime files", () => {
         "utf8",
       );
 
-      const result = await ensureExtendInitFiles(projectRoot, catalogRoot);
+      const result = await ensureExtendInitFiles(projectRoot, catalogRoot, generatedAt);
 
       assert.deepEqual(DEFAULT_EXTEND_CONFIG, {
         schemaVersion: 1,
@@ -140,7 +141,7 @@ describe("wonder-extend init runtime files", () => {
         },
       });
       assert.deepEqual(capabilities.capabilities, {});
-      assert.equal(typeof capabilities.generatedAt, "string");
+      assert.equal(capabilities.generatedAt, generatedAt);
       assert.equal(existsSync(join(projectRoot, ".wonder", "reports", "extend-latest.json")), false);
       assert.ok(result.createdPaths.includes(".wonder/config/extend.json"));
       assert.ok(result.existingPaths.includes(".wonder/extend/integrations.json"));

@@ -69,7 +69,7 @@ async function ensureInitFiles(options: InitPluginOptions): Promise<NormalizedIn
           }),
         );
       }
-      const result = await ensureExtendInitFiles(options.projectRoot, options.catalogRoot);
+      const result = await ensureExtendInitFiles(options.projectRoot, options.catalogRoot, options.generatedAt);
       return { created: result.createdPaths, existing: result.existingPaths, skippedAssets: [] };
     }
     default: {

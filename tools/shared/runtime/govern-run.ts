@@ -1,7 +1,7 @@
-import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { platformIdSchema, type PlatformId } from "../platform/names.ts";
 import { createScaffold } from "./markdown/scaffold.ts";
+import { writeRunFilesIfAbsent } from "./run-files.ts";
 import type { CapabilityId } from "../schema/package.ts";
 import {
   governStandardsArtifactsSchema,
@@ -25,14 +25,12 @@ export interface GovernRunScaffoldResult {
   runId: string;
   runDir: string;
   files: string[];
+  createdPaths: string[];
+  existingPaths: string[];
 }
 
 function jsonWithTrailingNewline(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
-}
-
-function runRelativePath(runId: string, fileName: string): string {
-  return `.wonder/runs/${runId}/${fileName}`;
 }
 
 function defaultDefineStandardsArtifacts(): GovernStandardsArtifacts {
@@ -85,7 +83,6 @@ export async function createGovernRunScaffold(
 ): Promise<GovernRunScaffoldResult> {
   const platform = platformIdSchema.parse(options.platform);
   const runDir = join(options.projectRoot, ".wonder", "runs", options.runId);
-  await mkdir(runDir, { recursive: true });
 
   const runRecord: RunRecord = runRecordSchema.parse({
     schemaVersion: 1,
@@ -97,14 +94,13 @@ export async function createGovernRunScaffold(
     startedAt: options.startedAt,
   });
   const files = governRunFiles(options.runId, options.capabilityId, runRecord, options.userRequest);
-
-  for (const [fileName, content] of files) {
-    await writeFile(join(runDir, fileName), content, "utf8");
-  }
+  const written = await writeRunFilesIfAbsent(runDir, options.runId, files);
 
   return {
     runId: options.runId,
     runDir,
-    files: files.map(([fileName]) => runRelativePath(options.runId, fileName)),
+    files: written.files,
+    createdPaths: written.createdPaths,
+    existingPaths: written.existingPaths,
   };
 }

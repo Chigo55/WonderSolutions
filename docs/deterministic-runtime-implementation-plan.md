@@ -14,6 +14,13 @@ state/run/reuse/extend stores, `initPlugin`, and source-listing operations. All
 16 §7 operations are registered and covered by tests, including a CLI↔facade and
 an MCP-over-in-memory-transport equivalence check.
 
+Post-review hardening (2026-06-22): run scaffold creation now preserves existing
+run files and reports them as existing, `updateRunRecord` rejects unknown patch
+fields at the public registry boundary, `renderReuseOutput` can write run
+`output.md` and explicit target files through the runtime operation, and
+`wonder-extend` init uses caller-provided `generatedAt` instead of reading the
+clock internally.
+
 ## 0. Summary
 
 The runtime *logic* already exists as scattered library functions under
@@ -156,6 +163,8 @@ returning `RuntimeResult`, reusing existing helpers. New work:
 - `renderReuseOutput(...)` — wrap `renderReuseTemplate` + write `output.md`
   (`preserve content`) behind `assertReuseTargetWriteAllowed`.
 - `updateConfig(domain, patch)` — explicit typed update, preserve by default (G8).
+  This remains outside the current §7 public operation set and should be promoted
+  only if the specification adds it as a runtime operation.
 - Thin wrappers: `listPackages`, `listCapabilities`, `getCapabilitySpec`
   (over `loadSource`), `readState`, `validateState` (over `validateRuntime`),
   `createRunScaffold` (dispatch to the right `create*RunScaffold`),

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -120,6 +120,59 @@ describe("operation registry — project-local lifecycle", () => {
     });
   });
 
+  it("preserves existing run scaffold files and reports them as existing", async () => {
+    await withTempRoot(async (root) => {
+      const runId = "20260622-010000-wonder-build-create";
+      const input = {
+        projectRoot: root,
+        packageId: "wonder-build",
+        capabilityId: "create",
+        platform: "claude",
+        startedAt: generatedAt,
+        runId,
+      };
+
+      const first = await executeOperation("createRunScaffold", {
+        ...input,
+        userRequest: "First request.",
+      });
+      assert.equal(first.ok, true);
+
+      const second = await executeOperation("createRunScaffold", {
+        ...input,
+        userRequest: "Second request.",
+      });
+      assert.equal(second.ok, true);
+      if (!second.ok) return;
+      assert.equal(second.paths.created.length, 0);
+      assert.ok(second.paths.existing.includes(`.wonder/runs/${runId}/request.md`));
+      assert.equal(await readFile(join(root, ".wonder/runs", runId, "request.md"), "utf8"), "First request.\n");
+    });
+  });
+
+  it("rejects unknown run-record patch fields", async () => {
+    await withTempRoot(async (root) => {
+      const runId = "20260622-020000-wonder-build-create";
+      await executeOperation("createRunScaffold", {
+        projectRoot: root,
+        packageId: "wonder-build",
+        capabilityId: "create",
+        platform: "claude",
+        userRequest: "Create something.",
+        startedAt: generatedAt,
+        runId,
+      });
+
+      const result = await executeOperation("updateRunRecord", {
+        projectRoot: root,
+        runId,
+        patch: { unknownField: "should fail" },
+      });
+      assert.equal(result.ok, false);
+      assert.equal(result.ok === false && result.error.code, "runtime-invalid-input");
+    });
+  });
+
   it("renders a reuse template with variable warnings", async () => {
     const result = await executeOperation("renderReuseOutput", {
       body: "Hello {{name}} and {{missing}}",
@@ -129,5 +182,35 @@ describe("operation registry — project-local lifecycle", () => {
     if (!result.ok) return;
     assert.equal((result.data as { output: string }).output, "Hello World and ");
     assert.equal(result.warnings.length, 1);
+  });
+
+  it("renders reuse output into the run output file when a run id is supplied", async () => {
+    await withTempRoot(async (root) => {
+      const runId = "20260622-030000-wonder-reuse-generate-output";
+      await executeOperation("createRunScaffold", {
+        projectRoot: root,
+        packageId: "wonder-reuse",
+        capabilityId: "generate-output",
+        platform: "claude",
+        userRequest: "Generate a report.",
+        startedAt: generatedAt,
+        runId,
+        operation: "generate",
+      });
+
+      const result = await executeOperation("renderReuseOutput", {
+        projectRoot: root,
+        runId,
+        body: "Hello {{name}}",
+        variables: { name: "Wonder" },
+      });
+      assert.equal(result.ok, true);
+      if (!result.ok) return;
+      assert.ok(result.paths.updated.includes(`.wonder/runs/${runId}/output.md`));
+      assert.deepEqual((result.data as { writtenPaths: string[] }).writtenPaths, [
+        `.wonder/runs/${runId}/output.md`,
+      ]);
+      assert.equal(await readFile(join(root, ".wonder/runs", runId, "output.md"), "utf8"), "Hello Wonder");
+    });
   });
 });

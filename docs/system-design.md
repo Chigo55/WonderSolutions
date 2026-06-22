@@ -189,6 +189,8 @@ packages/ + adapters/
 
 Generated output은 `generated/` 같은 별도 폴더에 숨기지 않고, 각 플랫폼이 실제로 읽는 native path에 직접 생성한다. Generated output은 commit 대상이지만, 사람이 직접 수정해서는 안 된다.
 
+세 플랫폼 surface는 결정론적으로 처리해야 하는 runtime file work를 직접 구현하지 않는다. Init, machine-managed JSON, run scaffold, typed report, reuse rendering, generate/validate/drift 같은 작업은 MCP 또는 repository CLI가 제공하는 deterministic runtime layer를 통해 수행한다. MCP와 CLI는 같은 shared runtime implementation을 호출하는 동등한 public contract이며, 자세한 파일 소유권과 양식화 규칙은 `docs/deterministic-runtime.md`가 정의한다.
+
 ## 6. Capability Authoring Contract
 
 Capability 본문은 한 번만 작성한다.
@@ -358,6 +360,8 @@ Project-local runtime root는 `.wonder/`다.
 재사용 자산은 `.wonder/reuse/` 아래에 묶는다.
 
 외부 companion/integration 정보는 `.wonder/extend/` 아래에 둔다.
+
+`.wonder/` 아래 runtime JSON과 Markdown scaffold의 writer, preservation, repair 규칙은 `docs/deterministic-runtime.md`를 따른다.
 
 ## 10. Init And Discovery
 
