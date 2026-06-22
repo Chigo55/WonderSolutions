@@ -28,7 +28,7 @@ describe("wonder-build package source", () => {
       schemaVersion: 1,
       id: "wonder-build",
       displayName: "Wonder Build",
-      version: "0.1.0",
+      version: "0.2.0",
       userJob: "Build",
       description: "Structure task creation, modification, and review.",
       capabilityOrder: ["init", "create", "modify", "review"],

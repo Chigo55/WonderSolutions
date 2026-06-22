@@ -10,7 +10,7 @@ import { buildRuntimeToolDefinitions } from "./tools.ts";
  * server can be driven by an in-memory transport in tests.
  */
 export function createRuntimeMcpServer(): McpServer {
-  const server = new McpServer({ name: "wonder-runtime", version: "0.1.0" });
+  const server = new McpServer({ name: "wonder-runtime", version: "0.2.0" });
 
   for (const tool of buildRuntimeToolDefinitions()) {
     server.registerTool(

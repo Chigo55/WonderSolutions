@@ -35,7 +35,7 @@ describe("wonder-govern package source", () => {
       schemaVersion: 1,
       id: "wonder-govern",
       displayName: "Wonder Govern",
-      version: "0.1.0",
+      version: "0.2.0",
       userJob: "Govern",
       description: "Manage project standards and policy checks.",
       capabilityOrder: ["init", "define-standards", "check-policy"],

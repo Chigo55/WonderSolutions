@@ -39,7 +39,7 @@ describe("wonder-extend package source", () => {
       schemaVersion: 1,
       id: "wonder-extend",
       displayName: "Wonder Extend",
-      version: "0.1.0",
+      version: "0.2.0",
       userJob: "Extend",
       description: "Discover companion tools and external capabilities.",
       capabilityOrder: ["init", "discover-companions", "configure-integration", "detect-capabilities"],

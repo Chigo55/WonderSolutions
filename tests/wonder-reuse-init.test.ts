@@ -35,7 +35,7 @@ describe("wonder-reuse package source", () => {
       schemaVersion: 1,
       id: "wonder-reuse",
       displayName: "Wonder Reuse",
-      version: "0.1.0",
+      version: "0.2.0",
       userJob: "Reuse",
       description: "Manage reusable assets and generated output.",
       capabilityOrder: ["init", "manage-assets", "generate-output", "promote-asset"],
