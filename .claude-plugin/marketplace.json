@@ -8,25 +8,25 @@
       "description": "Structure task creation, modification, and review.",
       "name": "wonder-build",
       "source": "./plugins/claude/wonder-build",
-      "version": "0.1.0"
+      "version": "0.2.0"
     },
     {
       "description": "Manage project standards and policy checks.",
       "name": "wonder-govern",
       "source": "./plugins/claude/wonder-govern",
-      "version": "0.1.0"
+      "version": "0.2.0"
     },
     {
       "description": "Manage reusable assets and generated output.",
       "name": "wonder-reuse",
       "source": "./plugins/claude/wonder-reuse",
-      "version": "0.1.0"
+      "version": "0.2.0"
     },
     {
       "description": "Discover companion tools and external capabilities.",
       "name": "wonder-extend",
       "source": "./plugins/claude/wonder-extend",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }
