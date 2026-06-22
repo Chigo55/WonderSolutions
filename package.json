@@ -10,9 +10,11 @@
     "validate": "tsx tools/validate/cli.ts",
     "drift": "tsx tools/validate/cli.ts --generated --drift",
     "runtime": "tsx tools/runtime/cli.ts",
+    "mcp": "tsx tools/mcp/cli.ts",
     "check": "npm run generate && npm run validate && npm run drift"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "handlebars": "^4.7.8",
     "zod": "^3.25.67"
   },
